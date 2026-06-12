@@ -13,7 +13,7 @@
 12. What is git pull ?
 13. What is the difference between fetch and pull ?
 14. What is git conflict ?
-15. What is git cherry-pick ?
+15. What is git cherry-pick ?   Git cherry-pick applies a specific commit from one branch to another./Hotfix/Bugfix
 16. What is .gitignore ?
 17. What is git reflog ?      Shows all changes to HEAD (even deleted commits can be recovered).
 18. What is git blame?        Shows who last modified each line of a file.
@@ -33,205 +33,136 @@ Here are **Top 20 scenario-based Git questions** (real-world cases):
 
 👉 Use:
 
-```bash
+
 git commit --amend
-```
 
 ***
 
-### 🔹 2. You committed wrong code and want to undo (not pushed yet).
+🔹 2. You committed wrong code and want to undo (not pushed yet).
 
-👉 Use:
-
-```bash
 git reset --hard HEAD~1
-```
 
 ***
 
-### 🔹 3. You already pushed wrong commit to remote. How to fix safely?
+🔹 3. You already pushed wrong commit to remote. How to fix safely?
 
-👉 Use:
-
-```bash
 git revert <commit-id>
-```
+
 
 ***
 
-### 🔹 4. Your branch is behind main. How do you update?
+🔹 4. Your branch is behind main. How do you update?
 
-👉 Use:
-
-```bash
 git pull --rebase origin main
-```
 
-***
 
-### 🔹 5. You want clean commit history before PR.
+🔹 5. You want clean commit history before PR.
 
-👉 Use:
 
-```bash
 git rebase -i HEAD~N
-```
 
 ***
 
 ### 🔹 6. You want to combine multiple commits into one.
 
-👉 Use:
-
-```bash
 git rebase -i HEAD~N
-# squash
-```
+squash
 
 ***
 
-### 🔹 7. You started work but need to switch branch immediately.
+🔹 7. You started work but need to switch branch immediately.
 
-👉 Use:
-
-```bash
 git stash
-```
 
-***
+🔹 8. You want to get back stashed changes.
 
-### 🔹 8. You want to get back stashed changes.
-
-👉 Use:
-
-```bash
 git stash apply
-```
+
 
 ***
 
-### 🔹 9. You deleted a branch accidentally. Recover it.
+🔹 9. You deleted a branch accidentally. Recover it.
 
-👉 Use:
-
-```bash
 git reflog
 git checkout <commit-id>
-```
+
 
 ***
 
-### 🔹 10. You want to see who changed a specific line.
+🔹 10. You want to see who changed a specific line.
 
-👉 Use:
 
-```bash
 git blame file.txt
-```
 
 ***
 
 ### 🔹 11. You want to see changes before commit.
 
-👉 Use:
-
-```bash
 git diff
-```
 
 ***
-
-### 🔹 12. You have conflicts during merge. What will you do?
+🔹 12. You have conflicts during merge. What will you do?
 
 👉 Manually resolve → then:
 
-```bash
 git add .
 git commit
-```
+
 
 ***
+🔹 13. You want only one commit from another branch.
 
-### 🔹 13. You want only one commit from another branch.
-
-👉 Use:
-
-```bash
 git cherry-pick <commit-id>
-```
+
 
 ***
+🔹 14. You want to ignore log/temp files.
 
-### 🔹 14. You want to ignore log/temp files.
 
-👉 Add to:
-
-```
 .gitignore
-```
+
 
 ***
+🔹 15. You want to remove untracked files.
 
-### 🔹 15. You want to remove untracked files.
 
-👉 Use:
-
-```bash
 git clean -fd
-```
+
 
 ***
 
-### 🔹 16. Deployment failed after merge. Rollback fast.
+🔹 16. Deployment failed after merge. Rollback fast.
 
-👉 Use:
 
-```bash
 git revert HEAD
-```
 
-***
+🔹 17. You want to tag a release.
 
-### 🔹 17. You want to tag a release.
 
-👉 Use:
-
-```bash
 git tag v1.0
 git push origin v1.0
-```
 
 ***
+🔹 18. Wrong branch changes made. Move them.
 
-### 🔹 18. Wrong branch changes made. Move them.
-
-👉 Use:
-
-```bash
 git stash
 git switch correct-branch
 git stash apply
-```
 
-***
 
 ### 🔹 19. You want to check commit history.
 
-👉 Use:
-
-```bash
 git log --oneline
-```
 
 ***
 
 ### 🔹 20. Your local branch not tracking remote.
-
-👉 Use:
-
-```bash
 git branch -u origin/main
-```
+
+Your local branch is NOT tracking any remote branch
+That means:
+git pull ❌ won’t know from where to pull
+git push ❌ won’t know where to push
 
 
 👉 These scenarios map directly to real DevOps tasks:
