@@ -6,17 +6,17 @@
 5. What is git rebase ?
 6. What is squash in git ?    git merge --squash feature
 7. What is stash in git ?     Clean working directory and temporarily save wip files 
-8. What is git reset ?        When commit is wrong & code is right (--softundo commit, keep staged, (default)undo commit, unstage, --hard delete everything)
-9. What is git revert ?       Git revert undo the changes of a previous commit without deleting history & creates a new commit
+8. What is git reset ?        git reset --soft HEAD~1  git reset is used to undo commits or staging changes by moving the HEAD pointer.---When commit is wrong & code is right (--softundo commit, keep staged, (default)undo commit, unstage, --hard delete everything)
+9. What is git revert ?    git revert commit-ID   Git revert undo the changes of a previous commit without deleting history & creates a new commit
 10. What is difference between reset and revert ?
-11. What is git fetch ?
+11. What is git fetch ? 
 12. What is git pull ?
 13. What is the difference between fetch and pull ?
 14. What is git conflict ?
 15. What is git cherry-pick ?   Git cherry-pick applies a specific commit from one branch to another./Hotfix/Bugfix
 16. What is .gitignore ?
-17. What is git reflog ?      Shows all changes to HEAD (even deleted commits can be recovered).
-18. What is git blame?        Shows who last modified each line of a file.
+17. What is git reflog ?     git reflog shows history of HEAD movements--- Shows all changes to HEAD (even deleted commits can be recovered).
+18. What is git blame?     git blame <file>    Shows who last modified each line of a file.
 19. What is git config?
 20. What is detached HEAD state ?  When HEAD points to a commit instead of a branch.
 21. What is git clean?        Removes untracked files.
@@ -59,7 +59,7 @@ git pull --rebase origin main
 🔹 5. You want clean commit history before PR.
 
 
-git rebase -i HEAD~N
+git rebase -i HEAD~N  open last N commit and choose which one to pick and squash rest of the commits
 
 ***
 
@@ -112,7 +112,7 @@ git commit
 ***
 🔹 13. You want only one commit from another branch.
 
-git cherry-pick <commit-id>
+git cherry-pick <commit-id>      hotfix/bugfix
 
 
 ***
