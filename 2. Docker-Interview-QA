@@ -19,3 +19,9 @@
 19. What is docker volume ? How many types of docker volume are there ? Named Volume & Bind Mounts (docker run -itd --name con1 --mount type=volume/bind,source=myvol,target=/data nginx)
 20. How networking happens in docker ? 
 21. How many types of network are there in docker ?
+22. What is dockefile and command to build image ? Explain dockefile and all parameters inside dockerfile ? docker build -t image-name .
+23. What is the difference between CMD and Entrypoint ?
+24. How to copy local file in a container ?
+25. Docker exec -it con bash what this command will do ?
+26. What is docker compose, explain it ?
+
