@@ -28,3 +28,23 @@
 28. What os ansible collections ? How to install a single & multiple colection
 29. What is magic variable ? 
 30. How failure is ignored in ansible playbook ? failed_when = false
+31. What is idempotency in Ansible?
+32. What is difference between command and shell module?
+33. What is become in Ansible?
+34. What is difference between task and handler?
+35. What is changed_when in Ansible?
+36. What are block, rescue and always in Ansible?
+37. What is delegate_to in Ansible?
+38. What is difference between include and import?
+39. What is Ansible module?
+40. What is difference between role and playbook?
+41. What is Ansible ad-hoc command?
+42. What is difference between copy and template module?
+43. What is host_vars and group_vars?
+44. What is inventory variable precedence?
+45. What is dynamic inventory?
+46. What is Ansible Galaxy?
+47. How to debug a failed Ansible playbook?                            --- v → basic    -vv → more details   -vvv → full debug , ignore_errors: yes, failed_when: result.rc not in [0, 3]
+48. What is difference between static and dynamic includes?            --- Static import is processed at playbook parsing time, while dynamic include is processed at runtime and supports conditions and loops.
+49. What is serial keyword in playbook?                                --- serial controls how many hosts run at a time. Used for rolling updates / zero downtime deployment
+50. What is difference between push and pull configuration management?
