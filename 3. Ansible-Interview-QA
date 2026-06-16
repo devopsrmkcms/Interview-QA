@@ -1,1 +1,30 @@
-
+1. Define ansible?
+2. What other tools are there for configuration management ?
+3. What are ansible characteristics ?
+4. Explain ansible architecture ?
+5. Expain the priority of ansible.cfg file ?
+6. Expain inventory concept in ansible ?
+7. What is the command to list all host of inventory ? ansible-inventory -i inventory.ini --list  or ansible all -i inventory --list-hosts
+8. How and what to write in custome ansible.cfg file ?
+9. How to check playbook syntax is right ? ansible-playbook --syntax-check paybook.yml
+10. How to dry run playbook ? ansible-playbook -i inventory.ini playbook.yml --check
+11. What is ansible playbook ?
+12. How to define variable in ansible ?
+13. Explain different methods of defining variabes ?
+14. What is variable scope and explain ?
+15. What is register variable and why it is used ?
+16. How secrets and Vault is managed in ansible ?
+17. What is the difference between --ask-vaut-pass & --vault-id @prompt
+18. What is ansible facts ?
+19. What gather_facts does in paybook ?
+20. What is the command to colect facts ?   ansible all -m setup|more
+21. What is loop in ansible and how it is used ?
+22. Wha is conditional task in ansible ?
+23. What is handler and use of notify keywoords use ?
+24. How if & for loop used in jinja2 template ?
+25. WHat is the use jinja2 template ?
+26. What is ansible roles and how to create a role ? ansible-galaxy init <role-name>
+27. Explain directory structure of ansibe role ?
+28. What os ansible collections ? How to install a single & multiple colection
+29. What is magic variable ? 
+30. How failure is ignored in ansible playbook ? failed_when = false
