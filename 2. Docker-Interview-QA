@@ -1,27 +1,28 @@
-1. What is container ?
-2. What is docker ?
-3. Explain docker architecture ?
-4. What are the states of containers ?
-5. What is the command to create a container ?
-6. How to delete image in docker ?
-7. What is dangling images ?
-8. How do docker components interact during container creation ?
-9. What docker system prune does ?
-10. How docker client and Docker daemon communicate ?
-11. How many types of container images ?
-12. What is writable layer ?
-13. What docker system df does?
-14. What is command to access to a container ?     docker container exec -it con1 bash
-15. What are command used to check container properties ?   docker ps, docker inspect con1, docker stats con1
-16. What are restart policy available in docker ? restart no, always, on-failure, unless
-17. What is port forwarding in docker ? Port forwarding maps a port on the host machine → port inside the container so external users can access container services.
-18. What methods we can use to create image ? Docker commit & Dockerfile (docker commit con1 my-httpd:v1)
-19. What is docker volume ? How many types of docker volume are there ? Named Volume & Bind Mounts (docker run -itd --name con1 --mount type=volume/bind,source=myvol,target=/data nginx)
-20. How networking happens in docker ? 
-21. How many types of network are there in docker ?
-22. What is dockefile and command to build image ? Explain dockefile and all parameters inside dockerfile ? docker build -t image-name .
-23. What is the difference between CMD and Entrypoint ?
-24. How to copy local file in a container ?
-25. Docker exec -it con bash what this command will do ?
-26. What is docker compose, explain it ?
+1. What is container ?                                                 --- light weight , standalone, isolated unit having its binary & filesystem
+2. What is docker ?                                                    --- docker is tool to perform OS level virtualization and with docker we build & test images
+3. Explain docker architecture ?                                       --- Docker client , docker host, docker registry
+4. What are the states of containers ?                                 --- Running, Pasued, Stopped, Exited
+5. What is the command to create a container ?                         --- docker container run -itd --name con1 httpd
+6. How to delete image in docker ?                                     --- docker image rm <image-name>
+7. What is dangling images ?                                           --- untagged & unused iamges are called dangling images
+8. How do docker components interact during container creation ?       --- Docker creates a container by the Docker CLI sending a request to the Docker daemon, which uses containerd and runc to create namespaces, networking (bridge/veth), storage (layers), and finally start the container process.
+9. What docker system prune does ?                                     --- dangling images, stopped container, unused network, build cache
+10. How docker client and Docker daemon communicate ?                  --- USING A RESPAPI
+11. How many types of container images ?                               --- Base OS image, and Daemon images
+12. What is writable layer ?                                           --- So docker images are read ony files and once we create container from a image, it becomes a writable file/image/layer
+13. What docker system df command does?                                --- total images &  active images, total container & active containers, total volume & active voumes
+14. What is the command to access to a container ?                     --- docker container exec -it con1 bash
+15. What are command used to check container properties ?              --- docker ps, docker inspect con1, docker stats con1
+16. What are restart policy available in docker ?                      --- restart no, always, on-failure, unless
+17. What is port forwarding in docker ?                                --- Port forwarding maps a port on the host machine → port inside the container so external users can access container services.
+18. What methods we can use to create image ?                          --- Docker commit & Dockerfile (docker commit con1 my-httpd:v1)
+19. What is docker volume & How many types of docker volume?           --- Named Volume & Bind Mounts (docker run -itd --name con1 --mount type=volume/bind,source=myvol,target=/data nginx)
+20. How networking happens in docker ?                                 --- Docker networking works by creating virtual networks using bridge interfaces, assigning IPs to containers, and using NAT via iptables to enable communication between containers, host, and external networks.                               --- 
+21. How many types of network are there in docker ?                    --- bridge, host, none, overlay, McVlan
+22. What is dockefile and command to build image ?                     --- docker build -t image-name .
+23. Explain dockefile and all parameters inside dockerfile ?
+24. What is the difference between CMD and Entrypoint ?
+25. How to copy local file in a container ?                            --- docker cp test.txt mycontainer:/tmp/
+26. Docker exec -it con bash what this command will do ?
+27. What is docker compose, explain it ?                               --- docker-compose build/up/down/--build/ps/logs   docker-compose up -d --scale web=3
 
