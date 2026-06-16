@@ -38,4 +38,6 @@ terraform.tfstate.backup → Backup of state file
 
 .terraform.lock.hcl → Locks provider versions for consistency
 
-7. 
+7. How to limit creation of resource where many resource mentioned in main.tf file ? terraform apply -target=module.ec2
+8. How to destroy particular tagert in terraform ? terraform destroy -target=module.ec2  Problem of target option--Can break dependency graph and May leave dangling resources
+9. What is the use of count in terraform ?                     --- count:Used to conditionally create or skip resources, count → ON/OFF switch
