@@ -1,1 +1,41 @@
+1. What is terraform ?
+2. Which language terraform uses to write codes ?
+3. What all .tf we need in working directory and their use ?
+4. What terraform init actually does ?                        --- Reads .tf file,  Downloads providers (AWS, Azure, etc.)  Prepares working directory
+5. How terraform communicates to cloud providers ?            --- Terraform uses plugin called providers to coomunicate with cloud provider using their API
+6. Explain terraform project directory structure ?
 
+main.tf → Main file to define resources and infrastructure logic
+
+variables.tf → File to define input variables (structure only)
+
+terraform.tfvars → File to assign values to variables
+
+outputs.tf → File to define output values after execution
+
+provider.tf → File to define cloud providers (AWS, Azure, etc.)
+
+backend.tf → File to configure remote state storage (S3, Azure Blob, etc.)
+
+versions.tf → File to define required Terraform and provider versions
+
+✅ Modules
+modules/ → Directory to store reusable Terraform code
+
+modules/vpc/main.tf → Defines VPC resources inside module
+
+modules/vpc/variables.tf → Defines inputs for module
+
+modules/vpc/outputs.tf → Returns outputs from module
+
+✅ Auto-generated Files
+
+.terraform/ → Stores downloaded providers and modules
+
+terraform.tfstate → Stores current infrastructure state (most important)
+
+terraform.tfstate.backup → Backup of state file
+
+.terraform.lock.hcl → Locks provider versions for consistency
+
+7. 
