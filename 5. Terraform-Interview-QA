@@ -41,3 +41,110 @@ terraform.tfstate.backup → Backup of state file
 7. How to limit creation of resource where many resource mentioned in main.tf file ? terraform apply -target=module.ec2
 8. How to destroy particular tagert in terraform ? terraform destroy -target=module.ec2  Problem of target option--Can break dependency graph and May leave dangling resources
 9. What is the use of count in terraform ?                     --- count:Used to conditionally create or skip resources, count → ON/OFF switch
+10. What is Provider Alias?  Provider alias is used to define multiple configurations (multi-region / multi-account setup) of the same provider When you want to: Deploy in multiple regions ✅Usemultiple AWS accounts ✅Use different credentials ✅
+
+11. What is AWS api rate limit error ?    terraform apply -parallelism=2 and terraform apply -target=module.vpc 
+AWS API rate limit error occurs when too many API requests are sent in a short time, and it can be fixed by reducing parallelism, adding retries, optimizing code, or increasing service quotas
+Common in:
+Terraform apply 🔥
+Autoscaling
+Lambda / API Gateway
+CloudFormation
+
+12. What is terraform drift ? 
+Terraform drift happens when real infrastructure changes outside Terraform, so it no longer matches the Terraform state file
+
+-- Reason of drift 
+  ✅ Manual changes (AWS Console)
+  ✅ Someone runs CLI (aws cli)
+  ✅ Other automation tools
+  ✅ Team members modifying infra
+
+-- How to detect drift
+   terraform plan 
+   terraform refresh
+
+-- How to fix
+   Terraform apply                                 -- wil match the code
+   update terraform code & terraform apply         -- this will  match the code & real infra
+   terraform import aws_instance.web i-123456      -- import the changes into the code
+
+-- Best Practice
+   ✅ Always use Terraform for changes
+   ✅ Restrict manual access
+   ✅ Use remote state (S3)
+   ✅ Use CI/CD pipelines to check drift
+   ✅ Enable audit logs
+
+13. Resource removed from code but still exist in cloud, How to fix ?
+If a resource is removed from Terraform code but still exists in the cloud, 
+Terraform will plan to destroy it unless it is removed from the state using terraform state rm.
+terraform state rm module.rds.aws_db_instance.db
+
+Action                               Result
+Remove from code + apply             resource deleted 
+Remove from state                    resource kept 
+Add back in code                     no deletion 
+
+14. Provider/API bahviour changed after the upgrade , how to fix ?
+Pin Provider Version In versions.tf
+Check Provider Changelog
+Use .terraform.lock.hcl          module dependencies stored
+Downgrade Provider (Quick Fix)  terraform init -upgrade=false
+Update code
+
+15. What is circular dependencies b/w module and how to fix it ?
+Circular dependency occurs when two modules or resources depend on each other, creating a loop that Terraform cannot resolve and 
+Terraform gets stuck: Which one to create first?
+
+Why Circular Dependency Happens
+-- Wrong module design
+-- Passing outputs incorrectly
+-- Mutual dependency between modules
+-- Tight coupling
+
+How to fix 
+-- Break the Dependency-Fix design so dependency is one direction only
+-- Use Linear Flow Design-VPC → SG → EC2 ✅
+-- Use Separate Resources- VPC module → only creates VPC and SG module → only uses VPC ID
+-- Modules should be:
+   ✅ Independent  
+   ✅ Reusable  
+   ✅ loosely coupled
+
+16. What happens when AWS quota limits hits ?
+When AWS quota limits are exceeded, API requests fail and Terraform cannot create resources, leading to partial or failed deployment
+
+Why Quota Limit Happens
+-- Creating more resources than allowed
+-- Default AWS limits are low
+-- High parallel resource creation
+-- Multiple users/tools using same account
+-- Burst API requests
+
+How to Fix
+-- Increase quota in AWS Service Quotas ✅
+-- Reduce number of resources ✅
+-- Reduce parallelism (-parallelism) ✅
+-- Split deployment into smaller steps ✅
+
+17. What to do when remote backend access is lost?
+Remote backend access loss happens when Terraform cannot access state stored remotely (S3, Azure Blob, etc.), so Terraform operations fail
+Terraform gets error: state cannot be read or updated
+
+ Why It Happens
+-- S3 bucket / storage account not accessible
+-- IAM permission issue ❌
+-- Network issue ❌
+-- Wrong backend configuration ❌
+-- State file deleted or corrupted ❌
+
+How to Fix
+-- Restore backend access (permissions/network) ✅
+-- Fix IAM roles/credentials ✅
+-- Correct backend configuration ✅
+-- Restore state file from backup ✅
+-- Reconfigure backend using terraform init -reconfigure ✅
+-- use versioning
+
+   
