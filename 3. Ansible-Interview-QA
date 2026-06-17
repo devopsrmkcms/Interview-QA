@@ -94,3 +94,5 @@ ansible-galaxy collection install my_namespace-my_collection-1.0.0.tar.gz
 ansible-galaxy collection install .
 
 ansible-galaxy collection list
+
+56. give a full jinja2 template and other fies using condition loop if else for 4 servers where 2 servers is in manitenance
