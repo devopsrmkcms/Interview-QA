@@ -9,15 +9,15 @@
 9. How to check playbook syntax is right ? ansible-playbook --syntax-check paybook.yml
 10. How to dry run playbook ? ansible-playbook -i inventory.ini playbook.yml --check
 11. What is ansible playbook ?
-12. How to define variable in ansible ?
+12. How to define variable in ansible ?        "{{ }}"    jinja2 templating or variable interpolation
 13. Explain different methods of defining variabes ?
-14. What is variable scope and explain ?
+14. What is variable scope and explain ?      Variable scope defines where a variable is accessible and how long it is available in a playbook.
 15. What is register variable and why it is used ?
 16. How secrets and Vault is managed in ansible ?
-17. What is the difference between --ask-vaut-pass & --vault-id @prompt
+17. What is the difference between --ask-vault-pass & --vault-id @prompt
 18. What is ansible facts ?
-19. What gather_facts does in paybook ?
-20. What is the command to colect facts ?   ansible all -m setup|more
+19. What gather_facts does in playbook ?                              --- gather_facts is used to collect system information (facts) from target hosts before executing tasks.
+20. What is the command to collect facts ?                            --- ansible all -m setup|more
 21. What is loop in ansible and how it is used ?
 22. Wha is conditional task in ansible ?
 23. What is handler and use of notify keywoords use ?
@@ -28,7 +28,7 @@
 28. What os ansible collections ? How to install a single & multiple colection
 29. What is magic variable ? 
 30. How failure is ignored in ansible playbook ? failed_when = false
-31. What is idempotency in Ansible?
+31. What is idempotency in Ansible?                                    --- Idempotency in Ansible ensures that running the same playbook multiple times will not change the system after it has already reached the desired state.”
 32. What is difference between command and shell module?
 33. What is become in Ansible?
 34. What is difference between task and handler?
@@ -41,7 +41,15 @@
 41. What is Ansible ad-hoc command?
 42. What is difference between copy and template module?
 43. What is host_vars and group_vars?
+
 44. What is inventory variable precedence?
+Variable precedence in Ansible determines which variable value overrides others when the same variable is defined at 
+different levels like inventory, playbook, or extra vars.”
+Inside inventory, variables can be defined at:
+  --- Group level
+  --- Host level
+Host variables override group variables
+
 45. What is dynamic inventory?
 46. What is Ansible Galaxy?
 47. How to debug a failed Ansible playbook?                            --- v → basic    -vv → more details   -vvv → full debug , ignore_errors: yes, failed_when: result.rc not in [0, 3]
@@ -64,7 +72,7 @@ Yes (because node initiates execution)
 55. How ansible collection is created and its file structure ?
 
 # Create collection directory structure
-ansible-galaxy collection init my_namespace.my_collection
+ansible-galaxy collection init <collection-name>
 
 my_namespace/
   my_collection/
