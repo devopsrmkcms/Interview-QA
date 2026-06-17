@@ -23,7 +23,7 @@
 23. What is handler and use of notify keywoords use ?
 24. How if & for loop used in jinja2 template ?
 25. WHat is the use jinja2 template ?
-26. What is ansible roles and how to create a role ? ansible-galaxy init <role-name>
+26. What is ansible roles and how to create a role ? ansible-galaxy init <role-name>    Ansible roles are a structured way of grouping tasks, handlers, files, templates, and variables for reuse and better organization.”
 27. Explain directory structure of ansibe role ?
 28. What os ansible collections ? How to install a single & multiple colection
 29. What is magic variable ? 
