@@ -45,6 +45,44 @@
 45. What is dynamic inventory?
 46. What is Ansible Galaxy?
 47. How to debug a failed Ansible playbook?                            --- v → basic    -vv → more details   -vvv → full debug , ignore_errors: yes, failed_when: result.rc not in [0, 3]
-48. What is difference between static and dynamic includes?            --- Static import is processed at playbook parsing time, while dynamic include is processed at runtime and supports conditions and loops.
+48. What is difference between static import and dynamic includes?     --- Static import is processed at playbook parsing time, while dynamic include is processed at runtime and supports conditions and loops.
 49. What is serial keyword in playbook?                                --- serial controls how many hosts run at a time. Used for rolling updates / zero downtime deployment
-50. What is difference between push and pull configuration management?
+50. What is difference between push and pull configuration management? --- ansible-pull -U https://github.com/repo.git site.yml
+51. Why loop doesn't work with import_tasks?                           --- Import happens before execution, Loop runs during execution , So import cannot use runtime data
+52. When to Use Pull Model?                                            --- 1000+ servers (scaling issue), Nodes behind NAT/firewall , Continuous compliance needed
+53. Explain commands pull model of ansible ?                         
+ansible-pull -U <repo_url> <playbook>
+-U    → Git repo URL
+-C    → Branch name
+-i    → inventory (default localhost)
+-d    → directory to store repo
+-e    → extra variables
+
+54. Is Ansible pull agent-based?
+Yes (because node initiates execution)
+
+55. How ansible collection is created and its file structure ?
+
+# Create collection directory structure
+ansible-galaxy collection init my_namespace.my_collection
+
+my_namespace/
+  my_collection/
+    galaxy.yml           # Collection metadata
+    README.md
+    roles/               # Directory for roles
+    modules/             # Directory for custom modules
+    plugins/             # Directory for plugins
+
+cd my_namespace/my_collection/
+
+# Build the collection tarball
+ansible-galaxy collection build
+
+# Install from the tarball
+ansible-galaxy collection install my_namespace-my_collection-1.0.0.tar.gz
+
+# Or install from current directory
+ansible-galaxy collection install .
+
+ansible-galaxy collection list
