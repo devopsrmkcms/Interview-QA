@@ -1,18 +1,177 @@
 1. Define ansible?
+Definition:
+Ansible is an open-source automation tool used for configuration management, application deployment, orchestration, and infrastructure provisioning.
+
+Key Points:
+Agentless (uses SSH, no agent required)
+Uses YAML-based playbooks
+Follows idempotent execution
+Push-based architecture
+Easy to learn and lightweight
+
 2. What other tools are there for configuration management ?
+Definition:
+Configuration management tools are used to automate system configuration, maintain consistency, and manage infrastructure at scale.
+
+Common Tools:
+Puppet → Agent-based, declarative
+Chef → Agent-based, Ruby DSL
+SaltStack → Agent/Agentless hybrid, fast execution
+CFEngine → Oldest, highly scalable
+
+Key Difference:
+Most tools are agent-based, whereas Ansible is agentless and simpler.
+
 3. What are ansible characteristics ?
+Definition:
+Ansible characteristics define its core design principles and features that make it suitable for automation.
+
+Key Characteristics:
+Agentless architecture
+Idempotency (no repeated changes)
+Push-based execution
+YAML (human-readable syntax)
+Extensible via modules & plugins
+Simple and fast setup
+
 4. Explain ansible architecture ?
+
+Definition:
+Ansible follows a simple architecture where a central node controls and manages multiple target systems.
+Components:
+Control Node → Where Ansible is installed
+Managed Nodes → Target systems
+Inventory → List of hosts
+Playbooks → Tasks definition
+Modules → Units of execution
+Plugins → Extend functionality
+Working Flow:
+Control Node → SSH → Managed Nodes → Execute Modules → Return output
+
 5. Expain the priority of ansible.cfg file ?
+
+Definition:
+Ansible looks for its configuration file (ansible.cfg) in a specific order of precedence, and the first one found is used.
+
+Priority Order:
+Environment Variable → ANSIBLE_CONFIG
+Current Directory → Project folder (./ansible.cfg)
+User Home Directory → ~/.ansible.cfg
+System Default → /etc/ansible/ansible.cfg
+
 6. Expain inventory concept in ansible ?
+
+Definition:
+Inventory in Ansible is a file or source that contains the list of managed nodes (hosts) and their grouping information on which Ansible executes tasks.
+
+Key Concepts:
+Hosts → Individual servers (IP/hostname)
+Groups → Logical grouping (web, db, app)
+Variables → Host/group-specific values
+Types:
+Static Inventory → Manual INI/YAML file
+Dynamic Inventory → Auto-generated from cloud (AWS, Azure)
+
+[web]
+hostname  ansible_host = IP-Address 
+
 7. What is the command to list all host of inventory ? ansible-inventory -i inventory.ini --list  or ansible all -i inventory --list-hosts
+
+ansible-inventory -i inventory.ini --list    → Shows full inventory in JSON format
+ansible all -i inventory.ini --list-hosts    → Shows only hostnames in simple format
+
+Key Difference:
+--list → Detailed structure
+--list-hosts → Simple host list
+
 8. How and what to write in custome ansible.cfg file ?
+
+[defaults]
+inventory = ./inventory.ini
+remote_user = ec2-user
+host_key_checking = False
+retry_files_enabled = False
+
+[privilege_escalation]
+become = True
+become_method = sudo
+become_user = root
+become_ask_pass = True
+
 9. How to check playbook syntax is right ? ansible-playbook --syntax-check paybook.yml
+
 10. How to dry run playbook ? ansible-playbook -i inventory.ini playbook.yml --check
 11. What is ansible playbook ?
+Definition:
+An Ansible playbook is a YAML file that defines a set of tasks to be executed on managed nodes to achieve the desired system state.
+
+Key Components:
+Plays → Mapping of hosts + tasks
+Tasks → Individual actions
+Modules → Work units (file, package, service)
+Handlers → Triggered actions (restart service)
+
+[PLAYBOOK]
+- name: Install nginx
+  hosts: web
+  tasks:
+    - name: Install package
+      ansible.builtin.yum:
+        name: nginx
+        state: present
+
+
 12. How to define variable in ansible ?        "{{ }}"    jinja2 templating or variable interpolation
+
+Definition:
+Variables in Ansible are used to store values that can be reused across playbooks, tasks, and templates, 
+and they are accessed using Jinja2 templating ({{ }}).
+
+Syntax
+vars:
+  app_name: nginx
+
+Usage:
+name: "{{ app_name }}"
+
 13. Explain different methods of defining variabes ?
-14. What is variable scope and explain ?      Variable scope defines where a variable is accessible and how long it is available in a playbook.
+Variables in Ansible can be defined in multiple places depending on requirement and flexibility.
+
+Common Methods:
+Playbook Variables → Defined inside vars: & vars_files
+Inventory Variables → Defined in inventory file
+Host Variables → host_vars/hostname.yml
+Group Variables → group_vars/groupname.yml
+Extra Variables → Passed via CLI (-e)
+Role Variables → Inside roles (defaults/, vars/)
+
+14. What is variable scope and explain ? 
+Variable scope defines where a variable is accessible and how long it is available in a playbook.
+Definition:
+Variable scope defines where a variable is accessible and how long it is available during playbook execution.
+
+Scopes:
+Global Scope → Available throughout playbook
+Play Scope → Available inside a specific play
+Task Scope → Limited to a task
+Host Scope → Specific to a host
+Group Scope → Shared across a group
+
+Key Understanding:
+Higher precedence variables override lower ones Scope controls visibility and lifecycle
+
 15. What is register variable and why it is used ?
+Definition:
+A register variable is used to store the output of a task so that it can be reused in later tasks.
+
+Syntax
+- name: Check service status
+  command: systemctl status nginx
+  register: output
+
+- debug:
+   var: "{{ output }}
+
 16. How secrets and Vault is managed in ansible ?
 17. What is the difference between --ask-vault-pass & --vault-id @prompt
 18. What is ansible facts ?
