@@ -42,13 +42,301 @@ DenyGroups testgrp              # block specific groups
 LogLevel INFO                   # logging level
 SyslogFacility AUTHPRIV         # log facility
 
+3. How to disable SSH root login completely ?
+Edit SSH config:
+PermitRootLogin no         # disables root login via SSH
+Apply changes:
+systemctl restart sshd
+
+4. How to allow only key-based authentication (no password) ?
+Edit SSH config:
+PasswordAuthentication no
+PubkeyAuthentication yes
+Restart SSH:
+systemctl restart sshd
+
+5. How SSH works internally during authentication ?
+Step 1: Client sends request to server
+Step 2: Server checks ~/.ssh/authorized_keys
+Step 3: Server sends challenge
+Step 4: Client signs with private key
+Step 5: Server verifies using public key
+Step 6: Access granted
+
+6. How to troubleshoot SSH connection issues ?
+Check SSH service:
+systemctl status sshd
+Check logs:
+tail -f /var/log/secure        # RHEL/CentOS
+tail -f /var/log/auth.log      # Ubuntu
+Test verbose:
+ssh -v user@server
+
+7. How to change default SSH port ?
+Edit config:
+Port 2222
+Allow in firewall:
+firewall-cmd --add-port=2222/tcp --permanent
+firewall-cmd --reload
+Restart SSH:
+systemctl restart sshd
+
+8. How to restrict SSH access by IP address ?
+Edit /etc/hosts.allow:
+sshd: 192.168.1.0/24
+Edit /etc/hosts.deny:
+sshd: ALL
+(OR using firewall)
+firewall-cmd --add-rich-rule='rule family="ipv4" source address="192.168.1.10" accept'
+
+9. How to enable SSH login for specific group only ?
+Edit config:
+AllowGroups devops
+Add user to group:
+usermod -aG devops user1
+
+10. How to generate key without passphrase (for automation) ?
+ssh-keygen -t rsa -b 4096 -N ""
+👉 Used in:
+
+Ansible
+Jenkins
+Automation scripts
 
 
+11. What is known_hosts file in SSH ?
+Location:
+~/.ssh/known_hosts
+Purpose:
+✔ Stores server fingerprints
+✔ Prevents MITM attacks
+Command to remove old key:
+ssh-keygen -R server_ip
+
+12. How to enable SSH banner (security warning) ?
+Create banner file:
+vi /etc/ssh/banner.txt
+Edit SSH config:
+Banner /etc/ssh/banner.txt
+Restart:
+systemctl restart sshd
+
+ SSH Troubleshooting Scenarios (Real Production Cases)
+
+1. SSH Connection Refused
+Error:
+ssh: connect to host <ip> port 22: Connection refused
+
+Root Cause:
+
+SSH service not running
+Port blocked
+
+Fix:
+systemctl status sshd
+systemctl start sshd
+
+ss -tulnp | grep ssh
+firewall-cmd --list-all
 
 
+2. Permission Denied (Publickey)
+Error:
+Permission denied (publickey).
+
+Root Cause:
+
+Wrong key / key not copied
+Permission issue
+
+Fix:
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+
+ssh-copy-id user@server
 
 
+3. Too Many Authentication Failures
+Error:
+Received disconnect: Too many authentication failures
 
+Root Cause:
+
+SSH trying multiple keys
+
+Fix:
+ssh -i id_rsa user@server
+
+OR edit:
+~/.ssh/config
+IdentitiesOnly yes
+
+
+4. Host Key Verification Failed
+Error:
+WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!
+
+Root Cause:
+
+Server reinstalled / key changed
+
+Fix:
+ssh-keygen -R <server_ip>
+
+
+5. Connection Timeout
+Error:
+ssh: connect to host <ip> port 22: Connection timed out
+
+Root Cause:
+
+Network issue / firewall
+
+Fix:
+ping <ip>
+telnet <ip> 22
+firewall-cmd --list-ports
+
+
+6. Slow SSH Login
+Root Cause:
+
+DNS lookup delay
+
+Fix:
+Edit config:
+UseDNS no
+
+Restart:
+systemctl restart sshd
+
+
+7. Key-based login not working but password works
+Root Cause:
+
+Pubkey disabled
+
+Fix:
+PubkeyAuthentication yes
+AuthorizedKeysFile .ssh/authorized_keys
+
+
+8. SSH hangs after login
+Root Cause:
+
+.bashrc / profile issue
+
+Fix:
+ssh -t user@server bash --noprofile --norc
+
+Check:
+~/.bashrc
+~/.bash_profile
+
+
+9. SELinux blocking SSH key access (RHEL)
+Root Cause:
+
+wrong context
+
+Fix:
+restorecon -Rv ~/.ssh
+
+OR:
+ls -Z ~/.ssh
+
+
+10. User unable to SSH but exists
+Root Cause:
+
+shell disabled
+
+Check:
+cat /etc/passwd | grep user
+
+Fix:
+usermod -s /bin/bash user
+
+
+✅ Common SSH Interview Traps & Smart Answers
+
+🔥 Trap 1: Difference between SSH and Telnet?
+Answer:
+
+SSH → encrypted communication
+Telnet → plaintext (not secure)
+
+
+🔥 Trap 2: Is SSH using TCP or UDP?
+Answer:
+
+SSH uses TCP (port 22)
+
+
+🔥 Trap 3: What happens if permissions are wrong on .ssh?
+Answer:
+
+SSH ignores key for security
+login fails with publickey error
+
+
+🔥 Trap 4: Can we use same key on multiple servers?
+Answer:
+
+Yes, same public key can be copied to multiple servers
+
+
+🔥 Trap 5: What is difference between authorized_keys & known_hosts?
+
+authorized_keys → server-side (who can login)
+known_hosts → client-side (trusted servers list)
+
+
+🔥 Trap 6: Why SSH asks password even after key setup?
+Answer:
+
+Wrong key
+permissions issue
+PubkeyAuthentication disabled
+key not in authorized_keys
+
+
+🔥 Trap 7: What is SSH agent?
+Answer:
+
+Stores keys in memory
+avoids entering passphrase repeatedly
+
+Command:
+ssh-agent
+ssh-add id_rsa
+
+
+🔥 Trap 8: How to debug SSH deeply?
+ssh -vvv user@server
+
+
+🔥 Trap 9: What is StrictModes?
+Answer:
+
+Ensures correct permission on:
+
+~/.ssh
+authorized_keys
+
+
+prevents unauthorized access
+
+
+🔥 Trap 10: Can we restrict SSH commands for a user?
+Answer:
+Yes:
+command="ls" ssh-rsa AAAA...
+
+👉 Forces user to run only specific command
+
+✅ Interview Killer One-Liner
+"Most SSH issues in production are related to permissions, firewall, wrong keys, or sshd configuration, and can be debugged using ssh -vvv and log files."
 
 =================================================================================================================================================
 Chapter-Firewalld
@@ -193,7 +481,7 @@ Public key → used to encrypt data
 Private key → used to decrypt data
 
 =================================================================================================================================================
-Chapter-Kernel Management
+**Chapter-Kernel Management**
 =========================
 1. What is Kernel in Linux Operating System?
 
