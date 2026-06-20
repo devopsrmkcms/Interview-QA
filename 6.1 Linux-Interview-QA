@@ -1,3 +1,198 @@
+================================================================================================================================================
+Chapter-SSH Management
+=========================
+1. How passwordess authentication established in linux ?
+
+Step 1: Generate SSH Key (Client Side)
+ssh-keygen -t rsa -b 4096
+         Creates:
+            ~/.ssh/id_rsa       # private key (SECRET)
+            ~/.ssh/id_rsa.pub   # public key (SHARED)
+
+Step 2: Copy Public Key to Server
+ssh-copy-id user@server
+         Public key gets added to:
+            ~/.ssh/authorized_keys   # on server and server looks into ~/.ssh/authorized_keys at the time of connection from client
+
+Step 3: Set Proper Permissions (IMPORTANT)
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+
+2. What all parameters we can modify in /etc/ssh/sshd_config file ?
+
+PasswordAuthentication no        # disable password login (force key-based auth)
+PubkeyAuthentication yes         # enable SSH key-based login
+PermitRootLogin no               # disable direct root login
+AllowUsers user1 user2           # allow only specific users
+DenyUsers baduser                # block specific users
+
+Port 2222                        # change default SSH port (default 22)
+MaxAuthTries 3                   # limit login attempts
+LoginGraceTime 30                # timeout for login
+
+AuthorizedKeysFile .ssh/authorized_keys   # location of public keys
+StrictModes yes                  # enforce correct permissions on SSH files
+
+UsePAM yes                       # enable PAM authentication (Linux auth system)
+ChallengeResponseAuthentication no   # disable challenge-response auth
+
+AllowGroups devops               # allow only specific groups
+DenyGroups testgrp              # block specific groups
+
+LogLevel INFO                   # logging level
+SyslogFacility AUTHPRIV         # log facility
+
+
+
+
+
+
+
+
+
+=================================================================================================================================================
+Chapter-Firewalld
+=========================
+1.  1. What is firewalld
+Dynamic firewall manager (used in RHEL / CentOS / Rocky / Alma / Fedora)
+Uses zones instead of raw iptables
+Changes can be runtime (temporary) or permanent
+
+firewalld Important Concepts
+-- Zone → trust level (public, private, internal, dmz, etc.)
+-- Service → predefined port rules (ssh, http, https)
+-- Port → manual rule (e.g., 8080/tcp)
+
+Runtime vs Permanent
+-- runtime → lost after reboot
+-- permanent → saved config
+
+firewalld Commands (Command → Action)
+systemctl start firewalld                    # start firewall service
+systemctl stop firewalld                     # stop firewall
+systemctl restart firewalld                  # restart firewall
+systemctl enable firewalld                   # enable on boot
+systemctl disable firewalld                  # disable on boot
+systemctl status firewalld                   # check service status
+
+firewall-cmd --state                         # check if firewall is running
+firewall-cmd --reload                        # reload rules (apply permanent changes)
+
+firewall-cmd --get-zones                     # list all zones
+firewall-cmd --get-active-zones              # show active zones
+firewall-cmd --get-default-zone              # show default zone
+firewall-cmd --set-default-zone=public       # set default zone
+
+firewall-cmd --list-all                      # show full config (services, ports, interfaces)
+firewall-cmd --list-services                 # list allowed services
+firewall-cmd --list-ports                    # list open ports
+
+firewall-cmd --add-service=ssh                # allow ssh (runtime)
+firewall-cmd --add-service=http --permanent   # allow http permanently
+firewall-cmd --remove-service=http --permanent   # remove http service
+
+firewall-cmd --add-port=8080/tcp              # open port 8080 (temporary)
+firewall-cmd --add-port=8080/tcp --permanent  # open port permanently
+firewall-cmd --remove-port=8080/tcp --permanent   # close port
+
+firewall-cmd --add-rich-rule='rule family="ipv4" source address="192.168.1.10" accept'   # allow specific IP
+firewall-cmd --add-rich-rule='rule family="ipv4" source address="192.168.1.10" drop'     # block specific IP
+
+firewall-cmd --zone=public --add-interface=eth0 --permanent   # bind interface to zone
+firewall-cmd --get-services                                   # list predefined services
+firewall-cmd --complete-reload                                # reset firewall completely
+journalctl -u firewalld                                       # check firewall logs
+
+2. Tell all the important ports in linux system ?
+Important Ports (Port → Usage)
+2049    # NFS
+22      # SSH
+21      # FTP
+20      # FTP Data
+25      # SMTP (mail)
+53      # DNS
+67/68   # DHCP
+80      # HTTP
+443     # HTTPS
+110     # POP3
+143     # IMAP
+3306    # MySQL
+5432    # PostgreSQL
+6379    # Redis
+27017   # MongoDB
+8080    # Web/App servers (Tomcat)
+8443    # Secure app port
+9090    # Prometheus
+9092    # Kafka
+5601    # Kibana
+9200    # Elasticsearch
+3000    # Grafana
+6443    # Kubernetes API
+10250   # Kubelet
+2379-2380   # etcd
+
+
+3. Compare TCP and UDP
+TC V/S UDP
+
+TCP → requires connection (3-way handshake)
+UDP → no connection (direct send)
+
+Reliability
+TCP → reliable (guaranteed delivery)
+UDP → unreliable (no guarantee)
+
+Data Order
+TCP → maintains order
+UDP → no order guarantee
+
+Speed
+TCP → slower (checks + acknowledgments)
+UDP → faster (no overhead)
+
+Error Checking
+TCP → error detection + recovery
+UDP → only basic checksum (no recovery)
+
+Acknowledgement
+TCP → yes (ACK required)
+UDP → no ACK
+
+Packet Control
+TCP → flow & congestion control
+UDP → no control
+
+Header Size
+TCP → 20–60 bytes (more overhead)
+UDP → 8 bytes (lightweight)
+
+TCP → use when data must be correct (login, DB, APIs)
+UDP → use when speed matters (video, gaming, DNS)
+
+4. What is TCP 3-way handshake 
+TCP handshake is a 3-step process (SYN → SYN-ACK → ACK) used to establish a reliable connection between client and server.
+
+5. How certificate used for connection and what happens in backend ?
+
+Client                           Server
+
+Client Hello  ------------->
+
+                <-------------  Server Hello + Certificate
+
+Verify Certificate
+
+Pre-master key (encrypted) --------->
+
+                (decrypt using private key)
+
+✅ Secure session established
+
+
+Public key → used to encrypt data
+Private key → used to decrypt data
+
+=================================================================================================================================================
 Chapter-Kernel Management
 =========================
 1. What is Kernel in Linux Operating System?
