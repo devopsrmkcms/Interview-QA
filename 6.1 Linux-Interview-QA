@@ -1,0 +1,189 @@
+Chapter-Kernel Management
+=========================
+1. What is Kernel in Linux Operating System?
+
+Kernel is the core (heart) of the OS. It acts as a bridge between Hardware and Software. It is the first component loaded when the system boots
+
+It manages:
+CPU
+Memory (RAM)
+Devices (disk, network, etc.)
+Networking
+Security
+
+Applications do not directly talk to hardware
+They use system calls → handled by kernel
+
+2. How many type of kernel are there ?
+There are mainly 5 types of kernels:
+
+Monolithic Kernel
+-- All services run in kernel space
+   Fast but large
+   Example: Linux Kernel
+
+Microkernel
+-- Minimal kernel, services run in user space
+   More secure and modular
+   Example: Minix
+
+Hybrid Kernel
+-- Combination of monolithic + microkernel
+   Example: Windows, macOS
+
+Exokernel
+-- Very minimal, gives more control to applications
+
+Modular Kernel (Linux specific concept)
+-- Supports loading/unloading modules dynamically
+   Example: Device drivers using modprobe
+
+Linux = Monolithic + Modular (best answer)
+
+3. What Kernel Does in Linux OS?
+Kernel is responsible for core system functionality:
+-- Process Management
+-- Memory Management
+-- Device Management
+-- File System Management
+-- System Calls Handling
+-- Security & Access Control
+
+4. What is initramfs / initrd?
+-- Both are temporary root filesystems loaded into memory during startup to prepare before mounting the real root filesystem.
+
+5. Explain linux system boot procedure ? 
+-- POST → BIOS/UEFI → MBR/GPT → GRUB2 → Kernel → initramfs → systemd
+-- GRUB2 → [loads kernel into RAM] → Kernel starts → [mounts initramfs as temp root] → initramfs runs
+
+| Your Sequence | Detailed Step | What Happens                                               |
+| ------------- | ------------- | ---------------------------------------------------------- |
+| POST          | Step 1        | Hardware self-test by BIOS/UEFI                            |
+| BIOS/UEFI     | Step 1        | Firmware loads, finds bootable device                      |
+| MBR/GPT       | Step 2        | Boot sector where bootloader lives                         |
+| GRUB2         | Step 2–3      | Bootloader loads kernel + initramfs into memory            |
+| initramfs     | Step 4–5      | Temporary root filesystem; loads drivers, mounts real root |
+| systemd       | Step 6–7      | First user-space process; starts services, shows login     |
+
+| Step | Component | Key Action                    | More Info                                                                                                                                        |
+| ---- | --------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1    | POST      | Hardware check                | Runs before BIOS; checks CPU, RAM, storage, keyboard, graphics; fails with error/beep if hardware faulty                                         |
+| 2    | BIOS/MBR  | Load bootloader               | BIOS reads first 64 bytes of disk (MBR) or GPT; MBR contains GRUB2 code + partition table; UEFI uses .EFI file instead                           |
+| 3    | GRUB2     | Load kernel + initramfs       | Located in /boot/grub2/; config at /etc/default/grub; loads vmlinuz-* and initramfs-*.img into RAM; displays boot menu                           |
+| 4    | Kernel    | Initialize, mount temp root   | File: /boot/vmlinuz-<version>; decompresses itself; loads built-in drivers; mounts initramfs as tmpfs in RAM (temp root)                         |
+| 5    | initramfs | Load drivers, mount real root | File: /boot/initramfs-<version>.img; contains kernel modules (drivers); runs /init script; uses switch_root to switch to real /; discarded after |
+| 6    | systemd   | Start services, show login    | PID 1; default target: /etc/systemd/system/default.target; mounts /etc/fstab; starts sshd, cron, NetworkManager; TTY or GUI login                |
+
+6. 3. What is dmesg Used For ?
+-- dmesg = Display Message (kernel ring buffer)
+   Purpose: View kernel messages from boot and runtime
+   Shows: Hardware detection, driver initialization, system errors
+
+# Display all kernel messages
+dmesg
+
+# Display with timestamps
+dmesg -T
+
+# Display only errors
+dmesg -l err
+
+# Display only warnings and errors
+dmesg -l warn,err
+
+# Filter for specific keyword
+dmesg | grep -i error
+
+# Show last 50 lines
+dmesg | tail -50
+
+7. How to check kernel logs using journalctl command ?
+# All kernel logs from journal
+journalctl -k
+
+# Kernel logs since 2 days ago
+journalctl -k --since "2 days ago"
+
+# Kernel errors only
+journalctl -k -p err
+
+8. What is Kernel Panic?
+Kernel Panic = Critical error where kernel encounters an unrecoverable issue and crashes
+What Happens During Panic
+-- Kernel cannot continue safely
+-- System crashes
+-- Loses unsaved files/projects
+-- Displays error message on screen (often with stack trace)
+-- May reboot automatically depending on settings
+
+Reason of kernel Panic
+
+| Cause                      | Description                                                        |
+| -------------------------- | ------------------------------------------------------------------ |
+| Kernel bug                 | Bug in kernel code or built-in driver techtarget                   |
+| RAM failure                | Defective or improperly installed RAM chips techtarget             |
+| Disk corruption            | Hard disk damage or data corruption techtarget                     |
+| Corrupted system files     | Defective/corrupted OS files, processor, or memory techtarget      |
+| Unsupported hardware       | Hardware not compatible with kernel techtarget                     |
+| Failed drives/partitions   | Missing or failed disk drives/partitions techtarget                |
+| Incompatible drivers       | Device drivers incompatible with hardware techtarget+1             |
+| New kernel incompatibility | Installing new kernel without checking driver compatibility medium |
+| Filesystem errors          | Incorrect filesystem configuration or errors medium                |
+
+Kernel Panic V/S OOM KIller
+
+| Aspect   | OOM Killer                | Kernel Panic                     |
+| -------- | ------------------------- | -------------------------------- |
+| Severity | Process-level (kills app) | System-level (crashes entire OS) |
+| Recovery | System continues running  | Requires reboot                  |
+| Purpose  | Prevent memory exhaustion | Protect system from corruption   |
+| Config   | vm.panic_on_oom           | panic= kernel parameter          |
+
+9. How to rebuild initramfs?
+dracut -f
+
+# Rebuild initramfs for CURRENT kernel (force, verbose)
+dracut -f -v
+
+# Rebuild and save to specific file
+dracut -f -v /boot/initramfs-$(uname -r).img $(uname -r)
+
+# Example with specific version
+dracut -f /boot/initramfs-3.10.0-693.el7.x86_64.img 3.10.0-693.el7.x86_64
+
+10. How to check currently loaded modules?
+-- lsmod
+-- modprobe <module-name>
+-- modinfo
+-- modprobe -r  module-name
+
+11. How to debug high CPU caused by kernel process?
+
+12. /etc/sysctl.conf is a configuration file to set kernel parameters permanently
+It is used to tune Linux kernel behavior without reboot (after reload)
+These parameters are related to:
+-- Networking
+-- Memory management
+-- Security
+-- File system limits
+
+How it works:
+Values written in this file are applied using:
+sysctl -p (reloads config)
+Settings persist across reboots (if system reads this file during boot)
+
+View all kernel parameters
+sysctl -a
+
+View specific parameter
+sysctl net.ipv4.ip_forward
+
+Set parameter temporarily (runtime only)
+sysctl -w net.ipv4.ip_forward=1
+
+Apply settings from config file
+sysctl -p
+
+
+
+
