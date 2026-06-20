@@ -126,15 +126,13 @@ systemctl restart sshd
 1. SSH Connection Refused
 Error:
 ssh: connect to host <ip> port 22: Connection refused
-
 Root Cause:
-
-SSH service not running
-Port blocked
+-- SSH service not running
+-- Port blocked
 
 Fix:
-systemctl status sshd
-systemctl start sshd
+-- systemctl status sshd
+-- systemctl start sshd
 
 ss -tulnp | grep ssh
 firewall-cmd --list-all
@@ -145,9 +143,8 @@ Error:
 Permission denied (publickey).
 
 Root Cause:
-
-Wrong key / key not copied
-Permission issue
+-- Wrong key / key not copied
+-- Permission issue
 
 Fix:
 chmod 700 ~/.ssh
@@ -161,7 +158,6 @@ Error:
 Received disconnect: Too many authentication failures
 
 Root Cause:
-
 SSH trying multiple keys
 
 Fix:
@@ -177,19 +173,16 @@ Error:
 WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!
 
 Root Cause:
-
 Server reinstalled / key changed
 
 Fix:
 ssh-keygen -R <server_ip>
-
 
 5. Connection Timeout
 Error:
 ssh: connect to host <ip> port 22: Connection timed out
 
 Root Cause:
-
 Network issue / firewall
 
 Fix:
@@ -213,8 +206,7 @@ systemctl restart sshd
 
 7. Key-based login not working but password works
 Root Cause:
-
-Pubkey disabled
+-- Pubkey disabled
 
 Fix:
 PubkeyAuthentication yes
@@ -223,8 +215,7 @@ AuthorizedKeysFile .ssh/authorized_keys
 
 8. SSH hangs after login
 Root Cause:
-
-.bashrc / profile issue
+-- .bashrc / profile issue
 
 Fix:
 ssh -t user@server bash --noprofile --norc
@@ -236,8 +227,7 @@ Check:
 
 9. SELinux blocking SSH key access (RHEL)
 Root Cause:
-
-wrong context
+-- wrong context
 
 Fix:
 restorecon -Rv ~/.ssh
@@ -248,8 +238,7 @@ ls -Z ~/.ssh
 
 10. User unable to SSH but exists
 Root Cause:
-
-shell disabled
+-- shell disabled
 
 Check:
 cat /etc/passwd | grep user
@@ -294,7 +283,6 @@ known_hosts → client-side (trusted servers list)
 
 🔥 Trap 6: Why SSH asks password even after key setup?
 Answer:
-
 Wrong key
 permissions issue
 PubkeyAuthentication disabled
@@ -303,7 +291,6 @@ key not in authorized_keys
 
 🔥 Trap 7: What is SSH agent?
 Answer:
-
 Stores keys in memory
 avoids entering passphrase repeatedly
 
@@ -317,9 +304,7 @@ ssh -vvv user@server
 
 
 🔥 Trap 9: What is StrictModes?
-Answer:
-
-Ensures correct permission on:
+Answer: Ensures correct permission on:
 
 ~/.ssh
 authorized_keys
@@ -338,7 +323,7 @@ command="ls" ssh-rsa AAAA...
 ✅ Interview Killer One-Liner
 "Most SSH issues in production are related to permissions, firewall, wrong keys, or sshd configuration, and can be debugged using ssh -vvv and log files."
 
-=================================================================================================================================================
+===================================================================================================================================================================
 Chapter-Firewalld
 =========================
 1.  1. What is firewalld
@@ -666,6 +651,178 @@ sysctl -w net.ipv4.ip_forward=1
 
 Apply settings from config file
 sysctl -p
+==================================================================================================================================================================
+Chapter- Time & Cron Job Managemnet in Linux
+==============================================
+
+1. What is cron and crontab in Linux ?
+Cron → background service (daemon) that runs scheduled tasks
+Crontab → file where scheduled jobs are written
+Service:
+systemctl status crond     # RHEL/CentOS
+systemctl status cron      # Ubuntu
+
+
+2. What is cron job syntax ?
+* * * * * command_to_execute
+│ │ │ │ │
+│ │ │ │ └── Day of week (0-7)
+│ │ │ └──── Month (1-12)
+│ │ └────── Day of month (1-31)
+│ └──────── Hour (0-23)
+└────────── Minute (0-59)
+
+👉 Example:
+0 2 * * * backup.sh     # runs at 2 AM daily
+
+
+3. How to create and edit cron jobs ?
+crontab -e     # edit cron jobs
+crontab -l     # list cron jobs
+crontab -r     # remove cron jobs
+
+
+4. Where cron jobs are stored ?
+User cron:
+/var/spool/cron/<user>
+
+System cron:
+/etc/crontab
+/etc/cron.d/
+/etc/cron.daily/
+/etc/cron.hourly/
+
+
+5. What is difference between system cron and user cron ?
+
+✅ User Cron (crontab -e)
+
+Created using crontab -e command
+Stored per user (each user has separate cron)
+No need to mention user in job
+Runs with permissions of that user
+Location: /var/spool/cron/<username>
+
+👉 Example:
+* * * * * /home/user/script.sh
+
+
+✅ System Cron (/etc/crontab)
+Defined in system-wide cron file
+Managed by admin/root
+Must specify user in job
+Used for system-level tasks
+
+Location:
+/etc/crontab
+/etc/cron.d/
+
+👉 Example:
+* * * * * root /root/script.sh
+
+
+6. How to schedule job every specific interval ?
+Examples:
+*/5 * * * * script.sh     # every 5 minutes
+0 */2 * * * script.sh     # every 2 hours
+0 0 */3 * * script.sh     # every 3 days
+
+
+7. How to redirect cron output to file (VERY IMPORTANT)?
+* * * * * script.sh >> /var/log/script.log 2>&1
+
+👉 Explanation:
+
+>> → append output
+2>&1 → include errors
+
+
+8. How to troubleshoot cron jobs not running ?
+Check service:
+systemctl status crond
+
+Check logs:
+tail -f /var/log/cron        # RHEL
+tail -f /var/log/syslog      # Ubuntu
+
+Check:
+correct path
+permissions
+script executable
+
+
+9. Why cron jobs fail sometimes ?
+Common reasons:
+PATH not defined
+permission issue
+wrong syntax
+service not running
+
+Fix (set PATH):
+PATH=/usr/bin:/bin:/usr/sbin:/sbin
+
+
+10. What is difference between cron and anacron ?
+
+✅ Cron
+
+Used for scheduled recurring jobs (exact time execution)
+Runs only if system is ON at scheduled time
+If system is OFF → job is missed/skipped
+Suitable for servers (always running systems)
+Supports minute-level precision
+
+👉 Example:
+0 2 * * * backup.sh    # runs at 2 AM (only if system is ON)
+
+
+✅ Anacron
+
+Used for delayed job execution
+Runs jobs even if system was OFF earlier
+Executes missed jobs when system comes back online
+Suitable for laptops / desktops
+Works with day-level scheduling (not minute level)
+
+👉 Config file:
+/etc/anacrontab
+
+
+✅ Quick Difference (One-Line Memory)
+
+Cron → runs on exact time, skips if missed
+Anacron → runs later if missed due to system downtime
+
+11. What is @daily, @hourly in cron ?
+Shortcuts:
+@reboot script.sh      # runs at system startup
+@daily script.sh       # once per day
+@hourly script.sh      # every hour
+@weekly script.sh      # once per week
+@monthly script.sh     # once per month
+
+
+12. How to restrict users from using cron ?
+Files:
+/etc/cron.allow
+/etc/cron.deny
+
+Rules:
+If cron.allow exists → only listed users allowed
+Else → cron.deny users blocked
+
+
+13. How to run cron job as another user ?
+System cron:
+* * * * * user script.sh
+
+
+14. How to schedule job at reboot ?
+@reboot /path/script.sh
+
+=====================================================================================================================================================================
+Chapter-Time & NTP Management
+================================
 
 
 
