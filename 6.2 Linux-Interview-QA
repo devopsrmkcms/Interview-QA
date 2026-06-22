@@ -50,3 +50,338 @@ lvcreate -L 5G -n lv1 myvg
 lvdisplay
 lvs
 lvremove /dev/myvg/lv1
+
+6. How to reduce LVM size ?
+⚠ Only for ext4 (not recommended in production)
+Step 1: Unmount
+umount /mnt
+Step 2: Check filesystem
+e2fsck -f /dev/myvg/mylv
+Step 3: Reduce filesystem
+resize2fs /dev/myvg/mylv 5G
+Step 4: Reduce LV
+lvreduce -L 5G /dev/myvg/mylv
+Step 5: Mount again
+mount /mnt
+
+7. How to extend root filesystem (production case) ?
+Step 1: Check disk
+lsblk
+Step 2: Create PV
+pvcreate /dev/sdb
+Step 3: Extend VG
+vgextend rootvg /dev/sdb
+Step 4: Extend LV
+lvextend -l +100%FREE /dev/rootvg/root
+Step 5: Resize FS
+xfs_growfs /
+
+15. Interview scenario: Disk full on server
+Step 1: Check usage
+df -h
+Step 2: Check LVM
+lvs
+Step 3: Add new disk
+/dev/sdb
+Step 4: Extend VG
+vgextend myvg /dev/sdb
+Step 5: Extend LV + FS
+lvextend -l +100%FREE /dev/myvg/mylv
+xfs_growfs /mnt
+
+1. What happens if one disk in VG fails ?
+Step 1: If no redundancy → data loss
+Step 2: VG becomes partial
+Step 3: LV becomes inaccessible
+Step 4: Use vgreduce --removemissing (risk data loss)
+👉 Solution: Use RAID / Mirroring
+
+2. Can you extend mounted filesystem ?
+Step 1: Yes, for XFS/ext4
+Step 2: Extend LV
+lvextend -L +5G /dev/myvg/mylv
+Step 3: Resize FS
+xfs_growfs /mnt
+
+3. Can you reduce mounted filesystem ?
+Step 1: No (must be unmounted)
+Step 2: Only ext4 supported
+Step 3: High risk → backup required
+
+4. What happens if snapshot space gets full ?
+Step 1: Snapshot becomes invalid
+Step 2: Data corruption risk
+Step 3: Snapshot automatically dropped
+👉 Always allocate enough space
+
+5. Difference between lvextend and lvresize ?
+lvextend → Increase only
+lvresize → Increase + decrease
+
+6. Why LVM is better than partition ?
+Step 1: Dynamic resizing
+Step 2: Add disks without downtime
+Step 3: Snapshots
+Step 4: Better storage management
+
+7. How to recover deleted LV ?
+Step 1: Check metadata backup
+ls /etc/lvm/archive
+Step 2: Restore
+vgcfgrestore myvg
+👉 Not always guaranteed
+
+8. What is PE and LE ?
+PE → Physical Extent (VG level)
+LE → Logical Extent (LV level)
+👉 Mapping: LE → PE
+
+9. What is stripe vs mirror in LVM ?
+Stripe → Performance ↑ (spread IO)
+Mirror → Redundancy ↑ (duplicate data)
+
+10. Can one PV belong to multiple VGs ?
+❌ No
+✔ One PV → One VG only
+
+11. What happens if VG is inactive ?
+Step 1: LV not accessible
+Step 2: Mount fails
+Fix:
+vgchange -ay
+
+12. Difference between thin and thick provisioning ?
+Thin → Allocate on demand
+Thick → Pre-allocated
+👉 Risk: Thin can over-allocate
+
+13. Why lvextend works but filesystem still same ?
+Step 1: LV extended only
+Step 2: FS not resized
+Fix:
+xfs_growfs /mountpoint
+
+14. How to move data from one disk to another in VG ?
+Step 1: Add new disk
+pvcreate /dev/sdc
+vgextend myvg /dev/sdc
+Step 2: Move data
+pvmove /dev/sdb /dev/sdc
+
+15. What is pvmove used for ?
+✔ Move data between disks
+✔ Used in disk replacement
+
+16. What happens if you remove PV without vgreduce ?
+Step 1: VG breaks
+Step 2: LV corrupted
+Step 3: Data loss possible
+
+17. How to check free space in VG ?
+Command:
+vgs
+OR
+vgdisplay
+
+18. Can you mount LV without filesystem ?
+❌ No
+✔ Must format first
+mkfs.xfs /dev/myvg/mylv
+
+19. What is metadata in LVM ?
+✔ Stores VG, LV, PV mapping
+✔ Stored in:
+/etc/lvm/archive
+👉 Critical for recovery
+
+20. Real scenario: Server crashed after disk removal
+Step 1: Boot in rescue mode
+Step 2: Activate VG
+vgchange -ay
+Step 3: Check missing PV
+pvs
+Step 4: Remove missing disk
+vgreduce --removemissing
+Step 5: Repair FS
+fsck
+
+1. What is /etc/fstab in Linux ?
+✔ File used for automatic mounting at boot
+✔ Defines filesystem, mount point, options
+
+Structure of /etc/fstab
+Step 1: Device
+Step 2: Mount Point
+Step 3: Filesystem Type
+Step 4: Options
+Step 5: Dump
+Step 6: Pass
+
+Example entry
+/dev/sdb1    /data    xfs    defaults    0 0
+
+Fields explanation
+Step 1: Device
+/dev/sdb1 OR UUID
+Step 2: Mount point
+/data
+Step 3: Filesystem
+xfs / ext4
+Step 4: Options
+defaults / noexec / nosuid
+Step 5: Dump
+0 → disable backup
+Step 6: Pass
+0 → no fsck
+1 → root fs
+2 → other fs
+
+Important mount options
+defaults → rw, suid, exec
+ro → read only
+noexec → disable execution
+nosuid → no SUID
+nodev → ignore device files
+auto → mount at boot
+noauto → manual mount only
+
+Best practice (production)
+Step 1: Use UUID instead of device
+blkid
+Step 2: Add entry
+UUID=xxxx    /data    xfs    defaults    0 0
+
+How to verify fstab without reboot
+Step 1: Test config
+mount -a
+👉 If error → fstab issue
+
+Common troubleshooting
+Step 1: System stuck at boot
+Reason: Wrong fstab entry
+Step 2: Boot in rescue mode
+Step 3: Edit file
+vi /etc/fstab
+Step 4: Comment problematic line
+
+
+2. Restore LVM from backup (/etc/lvm/backup)
+✔ LVM automatically stores metadata backup
+✔ Location:
+/etc/lvm/backup/
+/etc/lvm/archive/
+
+
+3. How LVM backup works ?
+Step 1: Every change (vgcreate, lvextend)
+Step 2: Metadata saved automatically
+Command to manually backup:
+vgcfgbackup
+
+4. Restore Volume Group (VG) from backup
+Step-by-step
+Step 1: Check available backups
+ls /etc/lvm/backup
+OR
+ls /etc/lvm/archive
+
+Step 2: View backup file
+cat /etc/lvm/backup/myvg
+
+Step 3: Restore metadata
+vgcfgrestore myvg
+
+Step 4: Activate VG
+vgchange -ay myvg
+
+
+5. Full recovery scenario (disk issue / metadata corruption)
+Case: VG not detected
+Step 1: Scan for LVM
+pvscan
+vgscan
+
+Step 2: Restore metadata
+vgcfgrestore myvg
+
+Step 3: Activate
+vgchange -ay
+
+Step 4: Verify
+lvs
+vgs
+pvs
+
+
+6. Restore after disk replacement
+Step 1: Replace failed disk
+Step 2: Create PV
+pvcreate /dev/sdb
+
+Step 3: Restore metadata
+vgcfgrestore myvg
+
+Step 4: Rebuild mapping
+vgchange -ay
+
+
+7. Restore deleted LV (advanced scenario)
+Step 1: Stop writes immediately
+Step 2: Check archive
+ls /etc/lvm/archive
+
+Step 3: Restore older metadata
+vgcfgrestore -f /etc/lvm/archive/myvg_xxx.vg myvg
+
+Step 4: Activate
+vgchange -ay
+
+👉 Works only if data blocks not overwritten
+
+
+8. Difference: /etc/lvm/backup vs archive
+backup → latest config
+archive → historical versions
+
+
+9. Real production scenario (boot failure due to LVM)
+Step 1: Boot rescue mode
+Step 2: Activate VG
+vgchange -ay
+
+Step 3: Mount root
+mount /dev/myvg/root /mnt
+
+Step 4: Fix issue
+
+
+10. Important commands for recovery
+Backup:
+vgcfgbackup
+Restore:
+vgcfgrestore myvg
+Scan:
+pvscan
+vgscan
+Activate:
+vgchange -ay
+Check:
+lvs
+vgs
+pvs
+
+
+11. Interview tricky question
+What happens if /etc/fstab has wrong entry ?
+Step 1: Boot may fail or hang
+Step 2: System goes into emergency mode
+Step 3: Manual fix required
+
+What happens if LVM metadata is lost ?
+Step 1: VG not visible
+Step 2: Data inaccessible
+Step 3: Restore using
+vgcfgrestore
+
+===============================================================================================================================================================
+
