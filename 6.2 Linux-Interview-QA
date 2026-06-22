@@ -1,3 +1,853 @@
+==============================================================================================================================================================
+Boot Procedure & Break root password
+====================================
+1. Step-by-step Linux Boot / Reboot Flow
+🔁 What happens when reboot command is given ?
+Step 1: User runs
+reboot
+Step 2: systemd receives signal
+(systemctl reboot)
+Step 3: Stop all services
+systemctl stops running services gracefully
+Step 4: Unmount filesystems
+umount all mounted partitions
+Step 5: Sync data to disk
+sync → flush memory buffers
+Step 6: Kill remaining processes
+Step 7: Kernel triggers reboot
+
+
+2. Full Boot Flow (VERY IMPORTANT INTERVIEW)
+Step 1: BIOS / UEFI
+✔ Hardware check (POST)
+✔ Looks for bootable device
+
+Step 2: Bootloader (GRUB2)
+✔ Loads kernel and initramfs
+✔ Displays boot menu
+
+Step 3: Kernel loads
+✔ Kernel initializes hardware
+✔ Mounts root filesystem (temporary via initramfs)
+
+Step 4: initramfs
+✔ Temporary root filesystem
+✔ Loads drivers required to mount real root
+
+Step 5: Switch to real root filesystem
+✔ Mount actual / (root)
+
+Step 6: systemd (PID 1)
+✔ Starts system services
+✔ Reads target
+
+Step 7: Target reached
+✔ multi-user.target OR graphical.target
+
+
+3. Root Password Reset (Break Root Password)
+✅ Works for RHEL 7 / 8 / 9 (slight difference)
+
+🔴 Method 1: Using GRUB (Most important)
+
+Step-by-step (common logic for RHEL 7/8/9)
+
+Step 1: Reboot system
+
+Step 2: At GRUB menu
+Press e (edit mode)
+
+Step 3: Find kernel line
+Look for line starting with:
+linux or linux16 or linuxefi
+
+Step 4: Modify line
+👉 Remove:
+rhgb quiet
+👉 Add at end:
+For RHEL 7:
+rd.break
+For RHEL 8/9:
+rd.break
+
+Step 5: Boot
+Press:
+Ctrl + X
+
+
+4. Enter emergency shell
+Step 1: System drops to initramfs shell
+
+Step 2: Remount root filesystem as read-write
+mount -o remount,rw /sysroot
+
+Step 3: Change root
+chroot /sysroot
+
+
+5. Reset root password
+passwd
+👉 Enter new password
+
+
+6. Fix SELinux context (VERY IMPORTANT)
+For RHEL 8/9:
+touch /.autorelabel
+👉 Required for SELinux systems
+
+
+7. Exit and reboot
+Step 1: Exit chroot
+exit
+Step 2: Exit again
+exit
+Step 3: System reboots
+
+
+8. First boot after reset
+Step 1: SELinux relabel starts
+✔ May take time
+Step 2: Login with new password
+
+
+9. RHEL 7 vs 8/9 difference (INTERVIEW)
+RHEL 7:
+✔ Sometimes no SELinux relabel needed
+RHEL 8/9:
+✔ Must run
+touch /.autorelabel
+
+
+10. Alternative method (less used)
+Add to kernel line:
+init=/bin/bash
+
+Steps
+Step 1: Edit grub → add init=/bin/bash
+Step 2: Boot
+Step 3: Mount root RW
+mount -o remount,rw /
+Step 4: Change password
+passwd
+Step 5: Exec init
+exec /sbin/init
+
+
+11. Real production scenario (password reset not working)
+
+Problem 1: System read-only
+Fix:
+mount -o remount,rw /sysroot
+
+Problem 2: SELinux blocking login
+Fix:
+touch /.autorelabel
+
+Problem 3: Keyboard issue / wrong input
+✔ Check keyboard layout
+
+
+12. Security concept (IMPORTANT)
+👉 Why this works ?
+Step 1: Physical access to system
+Step 2: GRUB allows kernel edit
+Step 3: Bypass authentication
+
+How to prevent ?
+Step 1: Set GRUB password
+grub2-setpassword
+
+
+13. Important interview questions
+
+Why chroot is used ?
+✔ To switch into real root filesystem
+
+
+What is rd.break ?
+✔ Break boot process before mounting root
+
+
+Why remount rw required ?
+✔ Root partition mounted as read-only
+
+
+What happens if you skip autorelabel ?
+✔ Login may fail due to SELinux context mismatch
+
+
+14. Quick revision
+reboot → stop services → unmount → restart
+GRUB → kernel edit → rd.break
+mount → chroot → passwd
+SELinux → autorelabel
+
+
+
+==============================================================================================================================================================
+Systemd Managment
+===========================
+
+1. What is systemd ?
+✔ Init system (PID 1) in modern Linux
+✔ Manages services, processes, targets
+
+2. What are Units in systemd ?
+Step 1: Service (.service)
+Step 2: Target (.target)
+Step 3: Mount (.mount)
+Step 4: Socket (.socket)
+Step 5: Timer (.timer)
+
+3. Important systemctl commands
+Start service
+systemctl start httpd
+Stop service
+systemctl stop httpd
+Restart
+systemctl restart httpd
+Status
+systemctl status httpd
+Enable (auto start at boot)
+systemctl enable httpd
+Disable
+systemctl disable httpd
+
+4. Runtime vs Permanent (VERY IMPORTANT)
+Runtime (temporary)
+Step 1: Changes apply immediately
+Step 2: Lost after reboot
+Example:
+systemctl start httpd
+
+Permanent
+Step 1: Persist after reboot
+Step 2: Stored on disk
+Example:
+systemctl enable httpd
+
+
+5. What is target (replacement of runlevel) ?
+✔ Group of services
+✔ Similar to runlevels
+
+6. Runlevel mapping (IMPORTANT)
+Runlevel 0 → poweroff.target
+Runlevel 1 → rescue.target
+Runlevel 3 → multi-user.target
+Runlevel 5 → graphical.target
+Runlevel 6 → reboot.target
+
+
+7. How to check current target ?
+systemctl get-default
+
+8. How to change default target ?
+systemctl set-default multi-user.target
+
+
+9. What is isolate in systemd ?
+✔ Switch to another target immediately
+
+Example
+systemctl isolate multi-user.target
+
+How isolate works
+Step 1: Stops unwanted services
+Step 2: Starts services of target
+Step 3: System switches mode
+
+
+10. Mask vs Disable (VERY IMPORTANT INTERVIEW)
+Disable
+systemctl disable httpd
+✔ Prevent start at boot
+✔ Manual start allowed
+
+Mask
+systemctl mask httpd
+✔ Cannot start manually or automatically
+✔ Linked to /dev/null
+
+Unmask
+systemctl unmask httpd
+
+
+11. How to modify existing service ?
+Step 1: Create override file
+systemctl edit httpd
+
+Example (add restart policy)
+[Service]
+Restart=always
+
+Step 2: Reload daemon
+systemctl daemon-reexec
+systemctl daemon-reload
+
+Step 3: Restart service
+systemctl restart httpd
+
+
+12. How to create a new service file ?
+Step-by-step
+Step 1: Create file
+vi /etc/systemd/system/myapp.service
+
+Example service file
+[Unit]
+Description=My Application
+After=network.target
+[Service]
+ExecStart=/usr/bin/python3 /opt/app.py
+Restart=always
+User=root
+[Install]
+WantedBy=multi-user.target
+
+Step 2: Reload
+systemctl daemon-reload
+
+Step 3: Start
+systemctl start myapp
+
+Step 4: Enable
+systemctl enable myapp
+
+
+13. Service file sections
+[Unit] → dependency and description
+[Service] → execution config
+[Install] → enable/target mapping
+
+
+14. Important service options
+ExecStart → command to run
+Restart → auto restart
+User → run as user
+Environment → env variable
+
+
+15. How to check logs (VERY IMPORTANT)
+journalctl -u httpd
+
+Live logs
+journalctl -fu httpd
+
+Boot logs
+journalctl -b
+
+
+16. How to list services
+systemctl list-units
+
+Only running
+systemctl list-units --type=service
+
+All (including stopped)
+systemctl list-unit-files
+
+
+17. Real production scenario (service not starting)
+Step 1: Check status
+systemctl status myapp
+
+Step 2: Check logs
+journalctl -u myapp
+
+Step 3: Syntax validation
+systemd-analyze verify /etc/systemd/system/myapp.service
+
+Step 4: Fix issue and restart
+
+
+18. Dependency management
+Example
+After=network.target
+Requires=network.target
+
+Difference:
+After → order only
+Requires → dependency
+
+
+19. What happens if service file changes not applied ?
+Step 1: Forgot reload
+Fix:
+systemctl daemon-reload
+
+
+20. Important interview traps
+
+Trap 1: Service enabled but not started
+✔ enable → only boot
+✔ need start manually
+
+
+Trap 2: Masked service not starting
+✔ Because linked to /dev/null
+✔ Must unmask first
+
+
+Trap 3: isolate vs set-default
+isolate → immediate change
+set-default → next boot
+
+
+Trap 4: restart vs reload
+restart → full restart
+reload → config reload only
+
+
+21. Quick revision
+systemctl → manage services
+target → runlevel replacement
+enable → boot start
+mask → completely block
+isolate → switch target
+journalctl → logs
+
+
+========================================================================================================================================================================
+Permissions
+==========================
+
+1. What are Linux file permissions ?
+✔ Controls who can read, write, execute a file
+
+Permission types
+r → read
+w → write
+x → execute
+
+Permission levels
+Step 1: User (owner)
+Step 2: Group
+Step 3: Others
+
+Example
+-rwxr-xr--
+Step 1: Owner → rwx
+Step 2: Group → r-x
+Step 3: Others → r--
+
+
+2. Numeric (Octal) permissions
+r = 4
+w = 2
+x = 1
+
+Example
+chmod 755 file
+Step 1: Owner → 7 (rwx)
+Step 2: Group → 5 (r-x)
+Step 3: Others → 5 (r-x)
+
+
+3. chmod command (change permission)
+Syntax
+chmod [options] mode file
+
+Examples
+chmod 755 file
+chmod 644 file
+
+Symbolic mode
+chmod u+x file     # add execute
+chmod g-w file     # remove write
+chmod o+r file     # add read
+
+
+4. chown command (change owner)
+Syntax
+chown user file
+
+Examples
+chown user1 file
+chown user1:group1 file
+
+
+5. chgrp command (change group)
+Syntax
+chgrp group file
+
+Example
+chgrp devops file
+
+
+6. What is SUID (Set User ID) ?
+✔ Runs file with owner’s permission
+
+Example
+passwd command
+
+How it works
+Step 1: User runs file
+Step 2: File executes as owner
+Step 3: Temporary privilege escalation
+
+Set SUID
+chmod u+s file
+OR
+chmod 4755 file
+
+Check
+ls -l
+-rwsr-xr-x
+👉 "s" in owner execute
+
+
+7. What is SGID (Set Group ID) ?
+✔ Runs file with group permission
+
+Directory behavior
+✔ New files inherit group
+
+Set SGID
+chmod g+s dir
+OR
+chmod 2755 dir
+
+Check
+drwxr-sr-x
+👉 "s" in group execute
+
+
+8. What is Sticky Bit ?
+✔ Only owner can delete files
+
+Used in
+/tmp directory
+
+How it works
+Step 1: Multiple users create files
+Step 2: Only file owner can delete
+
+Set Sticky Bit
+chmod +t dir
+OR
+chmod 1777 dir
+
+Check
+drwxrwxrwt
+👉 "t" at end
+
+
+9. Difference between SUID, SGID, Sticky
+SUID → File runs as owner
+SGID → File runs as group / directory inheritance
+Sticky → Restrict delete
+
+
+10. Important permission scenarios
+Scenario 1: Script not executing
+Step 1: Check permission
+ls -l
+Step 2: Add execute
+chmod +x script.sh
+
+
+Scenario 2: User cannot write file
+Step 1: Check permission
+ls -l
+Step 2: Add write
+chmod u+w file
+OR
+Step 3: Change owner
+chown user file
+
+
+Scenario 3: Shared directory for team
+Step 1: Create directory
+mkdir project
+Step 2: Set group
+chgrp devops project
+Step 3: Set permission
+chmod 2775 project
+👉 SGID ensures group inheritance
+
+
+Scenario 4: Secure shared folder
+Step 1: Create directory
+mkdir shared
+Step 2: Set permission
+chmod 1777 shared
+👉 Sticky bit prevents deletion
+
+
+11. Important commands for interview
+Check permissions:
+ls -l
+Check numeric:
+stat file
+Find SUID files:
+find / -perm -4000
+Find SGID files:
+find / -perm -2000
+Find Sticky bit files:
+find / -perm -1000
+
+
+12. What happens if permission is 777 ?
+✔ Full access to everyone
+❌ Security risk
+
+
+13. What happens if no execute permission ?
+✔ Cannot run file
+✔ Shell scripts fail
+
+
+14. Difference between file and directory permissions
+File:
+r → read content
+w → modify content
+x → execute
+Directory:
+r → list files
+w → create/delete files
+x → enter directory
+
+
+15. Default permissions (umask)
+Step 1: Default file → 666
+Step 2: Default dir → 777
+
+Example
+umask 022
+Result:
+File → 644
+Dir → 755
+
+
+16. How to check umask
+umask
+
+
+17. How to change umask
+umask 027
+
+
+18. Real production scenario (permission denied)
+Step 1: Check owner
+ls -l
+Step 2: Check permission
+ls -l
+Step 3: Fix
+chmod / chown
+Step 4: Check SELinux (if enabled)
+getenforce
+
+
+19. Interview tricky question
+Why “Permission denied” even with 777 ?
+Step 1: SELinux enabled
+Step 2: Wrong mount option (noexec)
+Step 3: Parent dir permission issue
+
+
+20. Quick summary (revision)
+chmod → change permission
+chown → change owner
+chgrp → change group
+SUID → run as owner
+SGID → group inheritance
+Sticky → restrict delete
+
+1. What is SUID (Set User ID) ?
+✔ File runs with owner’s privileges, not user
+
+How SUID works internally
+Step 1: Normal user runs file
+Step 2: Kernel checks SUID bit
+Step 3: Process runs as file owner
+Step 4: After execution → returns to normal user
+
+Example
+/usr/bin/passwd
+👉 Allows normal user to change password
+👉 File owned by root
+
+Check SUID
+ls -l /usr/bin/passwd
+-rwsr-xr-x
+👉 "s" in owner execute
+
+Set SUID
+chmod u+s file
+OR
+chmod 4755 file
+
+Remove SUID
+chmod u-s file
+
+
+2. What is SGID (Set Group ID) ?
+✔ File runs with group privileges
+✔ On directory → inherits group
+
+How SGID works (file)
+Step 1: User runs file
+Step 2: Process executes with group permission
+
+How SGID works (directory)
+Step 1: User creates file inside directory
+Step 2: File automatically gets directory’s group
+
+Example (directory)
+mkdir project
+chgrp devops project
+chmod 2775 project
+
+Result
+Files created inside → group = devops
+
+Check SGID
+ls -ld project
+drwxr-sr-x
+👉 "s" in group execute
+
+Set SGID
+chmod g+s dir
+OR
+chmod 2755 dir
+
+Remove SGID
+chmod g-s dir
+
+
+3. What is Sticky Bit ?
+✔ Used on directories
+✔ Only file owner can delete file
+
+Why needed ?
+👉 In shared directories like /tmp
+
+How Sticky Bit works
+Step 1: Multiple users create files
+Step 2: Even with write permission
+Step 3: Only owner can delete
+
+Example
+/tmp
+ls -ld /tmp
+drwxrwxrwt
+👉 "t" at end
+
+Set Sticky Bit
+chmod +t dir
+OR
+chmod 1777 dir
+
+Remove Sticky Bit
+chmod -t dir
+
+
+4. Difference between t and T (IMPORTANT INTERVIEW TRICK)
+Case 1: Small t
+drwxrwxrwt
+✔ Execute permission is present
+✔ Normal behavior
+
+Case 2: Capital T
+drwxrwxrwT
+✔ Execute permission is missing for others
+✔ Sticky bit set but directory not accessible properly
+
+Explanation
+t → sticky + executable
+T → sticky but no execute permission
+
+👉 Interview Question:
+Why "T" instead of "t" ?
+Step 1: Sticky bit is set
+Step 2: Execute permission missing for others
+
+
+5. Difference between SUID, SGID, Sticky
+SUID → Run as owner
+SGID → Run as group / inherit group
+Sticky → Prevent deletion by others
+
+
+6. Numeric representation (VERY IMPORTANT)
+SUID → 4
+SGID → 2
+Sticky → 1
+
+Examples
+chmod 4755 file   # SUID
+chmod 2755 dir    # SGID
+chmod 1777 dir    # Sticky
+
+
+7. Real production scenarios
+
+Scenario 1: Team shared directory
+Step 1: Create dir
+mkdir team
+Step 2: Set group
+chgrp devops team
+Step 3: Enable SGID
+chmod 2775 team
+👉 All files inherit group
+
+
+Scenario 2: Secure shared temp directory
+Step 1: Create dir
+mkdir /shared
+Step 2: Apply sticky
+chmod 1777 /shared
+👉 Only owners can delete
+
+
+Scenario 3: Misconfigured sticky bit (T case)
+Step 1: Permission
+drwxrwxrwT
+Step 2: Users cannot cd into directory
+👉 Fix
+chmod o+x dir
+
+
+Scenario 4: Security risk (SUID misuse)
+Step 1: File owned by root
+Step 2: SUID enabled
+👉 Risk: privilege escalation
+
+Check all SUID files
+find / -perm -4000
+
+
+8. Common interview traps
+
+Trap 1: Sticky bit on file ?
+❌ No effect
+✔ Only meaningful on directories
+
+
+Trap 2: SGID on file ?
+✔ Works
+✔ Group privilege execution
+
+
+Trap 3: Why SUID not working ?
+Step 1: Filesystem mounted with nosuid
+Step 2: Permission issue
+
+
+Trap 4: Directory access issue
+Even with rw → if no execute
+❌ Cannot enter directory
+
+
+9. Quick revision
+SUID → s in user → run as owner
+SGID → s in group → group inherit
+Sticky → t at end → delete protection
+t → exec present
+T → exec missing
+
+========================================================================================================================================================================
 LVM Management
 ==========================
 1. What is LVM in Linux ?
