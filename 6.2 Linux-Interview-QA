@@ -1,0 +1,52 @@
+LVM Management
+==========================
+1. What is LVM in Linux ?
+✔ Logical Volume Manager (LVM) is used for flexible disk management
+✔ Allows dynamic resizing of partitions
+✔ Abstracts physical storage into logical layers
+👉 Layers:
+Physical Disk → PV → VG → LV → Filesystem
+
+2. What are LVM components ?
+Step 1: Physical Volume (PV) → Raw disk (/dev/sdb)
+Step 2: Volume Group (VG) → Pool of storage
+Step 3: Logical Volume (LV) → Usable partition
+Step 4: Filesystem → ext4/xfs mounted for use
+
+3. Types of LVM
+Type 1: Linear LVM
+✔ Data stored sequentially
+Type 2: Striped LVM
+✔ Data spread across disks (performance ↑)
+Type 3: Mirrored LVM
+✔ Data duplicated (redundancy ↑)
+Type 4: Thin Provisioning
+✔ Allocate space on demand
+
+4. How to create LVM (end-to-end) ?
+Step 1: Create PV
+pvcreate /dev/sdb
+Step 2: Create VG
+vgcreate myvg /dev/sdb
+Step 3: Create LV
+lvcreate -L 10G -n mylv myvg
+Step 4: Format
+mkfs.xfs /dev/myvg/mylv
+Step 5: Mount
+mount /dev/myvg/mylv /mnt
+
+5. Important LVM commands
+PV commands:
+pvcreate /dev/sdb
+pvdisplay
+pvs
+VG commands:
+vgcreate myvg /dev/sdb
+vgextend myvg /dev/sdc
+vgdisplay
+vgs
+LV commands:
+lvcreate -L 5G -n lv1 myvg
+lvdisplay
+lvs
+lvremove /dev/myvg/lv1
