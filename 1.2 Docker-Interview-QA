@@ -13,7 +13,7 @@
 13. What docker system df command does?                                --- total images &  active images, total container & active containers, total volume & active voumes
 14. What is the command to access to a container ?                     --- docker container exec -it con1 bash
 15. What are command used to check container properties ?              --- docker ps, docker inspect con1, docker stats con1
-16. What are restart policy available in docker ?                      --- restart no, always, on-failure, unless
+16. What are restart policy available in docker ?                      --- restart no, always, on-failure, unless-stopped
 17. What is port forwarding in docker ?                                --- Port forwarding maps a port on the host machine → port inside the container so external users can access container services.
 18. What methods we can use to create image ?                          --- Docker commit & Dockerfile (docker commit con1 my-httpd:v1)
 19. What is docker volume & How many types of docker volume?           --- Named Volume & Bind Mounts (docker run -itd --name con1 --mount type=volume/bind,source=myvol,target=/data nginx)
