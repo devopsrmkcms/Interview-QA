@@ -25,4 +25,52 @@
 25. How to copy local file in a container ?                            --- docker cp test.txt mycontainer:/tmp/
 26. Docker exec -it con bash what this command will do ?
 27. What is docker compose, explain it ?                               --- docker-compose build/up/down/--build/ps/logs   docker-compose up -d --scale web=3
+28. Docker save/load & export/import
+Docker save
 
+Used to save Docker image into tar file
+Includes layers + metadata + history
+Used for backup / transfer
+
+✅ Command:
+docker save -o image.tar nginx
+✅ One-line:
+Save converts a Docker image into a tar file with full layers and history.
+
+Docker load
+
+Used to load image from tar file into Docker
+Restores full image with layers
+Opposite of save
+
+✅ Command:
+docker load -i image.tar
+✅ One-line:
+Load restores a Docker image from a tar file.
+
+Docker export
+
+Used to export container filesystem into tar
+Includes only container data (no layers/history)
+Lightweight
+
+✅ Command:
+docker export mycontainer -o container.tar
+✅ One-line:
+Export saves a container filesystem as a tar without image history.
+
+Docker import
+
+Used to create image from tar file
+No history/layers (flat image)
+Opposite of export
+
+✅ Command:
+docker import container.tar myimage:latest
+✅ One-line:
+Import creates a Docker image from a container tar file.
+
+✅ ✅ Important Interview Difference
+
+save / load → image (with layers ✅)
+export / import → container (no layers ❌)
