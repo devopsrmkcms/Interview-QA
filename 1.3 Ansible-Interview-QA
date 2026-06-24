@@ -115,6 +115,7 @@ Modules → Work units (file, package, service)
 Handlers → Triggered actions (restart service)
 
 [PLAYBOOK]
+---
 - name: Install nginx
   hosts: web
   tasks:
@@ -136,6 +137,371 @@ vars:
 
 Usage:
 name: "{{ app_name }}"
+
+
+You said:
+SSH password:
+localhost | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Failed to connect to the host via ssh: root@localhost: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).",
+    "unreachable": true
+}
+[root@k8s-control ansible]# vim inventory.ini
+[root@k8s-control ansible]#
+[root@k8s-control ansible]#
+[root@k8s-control ansible]#
+[root@k8s-control ansible]# ansible all -m ping -i inventory.ini
+node1 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Failed to connect to the host via ssh: ec2-user@172.31.32.95: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).",
+    "unreachable": true
+}
+[root@k8s-control ansible]# ansible all -m ping -i inventory.ini -k -u root
+SSH password:
+node1 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Failed to connect to the host via ssh: ec2-user@172.31.32.95: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).",
+    "unreachable": true
+}
+[root@k8s-control ansible]# cat inventory.ini
+node1 ansible_host=172.31.32.95 ansible_user=ec2-user
+[root@k8s-control ansible]# cat ansible.cfg
+[defaults]
+inventory = inventory.ini
+host_key_checking = False
+
+
+[privilege_escalation]
+become = True
+become_user = root
+[root@k8s-control ansible]#
+
+Copilot said:
+Good ✅ now we clearly see the issue — this is 100% SSH authentication problem (very common in AWS + Ansible)
+
+❌ Root Cause
+Permission denied (publickey,gssapi-keyex,gssapi-with-mic)
+👉 Means:
+
+Target server ONLY allows SSH key authentication
+Password auth is disabled
+You are trying:
+without key ❌
+or with wrong user ❌
+✅ ✅ Correct Fix (IMPORTANT – AWS EC2)
+👉 AWS EC2 does NOT allow password login by default
+
+✅ You MUST use PEM key
+✅ ✅ Step 1: Use your EC2 key
+Update inventory:
+
+node1 ansible_host=172.31.32.95 ansible_user=ec2-user ansible_ssh_private_key_file=/root/mykey.pem
+👉 Replace:
+
+/root/mykey.pem  ✅ (your actual key path)
+✅ ✅ Step 2: Fix key permissions
+VERY IMPORTANT:
+
+chmod 400 /root/mykey.pem
+✅ ✅ Step 3: Test SSH manually
+Before Ansible, always test:
+
+ssh -i /root/mykey.pem ec2-user@172.31.32.95
+✅ If this works → Ansible will work
+❌ If this fails → fix SSH first
+
+✅ ✅ Step 4: Run Ansible
+ansible all -m ping
+✅ Expected:
+
+node1 | SUCCESS => ...
+❌ ✅ Why your previous attempts failed
+❌ -k (password option)
+ansible all -k
+👉 Not working because:
+
+EC2 disables password login
+❌ -u root
+ansible all -u root
+👉 Not working because:
+
+Root SSH login is disabled
+❌ Without key
+ansible_user=ec2-user
+👉 Missing:
+
+SSH private key ❌
+✅ ✅ Final Working Setup
+✅ inventory.ini
+node1 ansible_host=172.31.32.95 ansible_user=ec2-user ansible_ssh_private_key_file=/root/mykey.pem
+✅ ansible.cfg
+[defaults]
+inventory = inventory.ini
+host_key_checking = False
+
+[privilege_escalation]
+become = True
+become_user = root
+✅ ✅ Important Interview Point (VERY IMPORTANT)
+AWS EC2:
+Password login ❌ disabled
+Root login ❌ disabled
+Only SSH key ✅ allowed
+👉 Always use:
+
+ansible_ssh_private_key_file
+✅ ✅ Quick Debug Checklist
+✅ Correct IP
+✅ Correct user (ec2-user / ubuntu)
+✅ PEM key provided
+✅ chmod 400 on key
+✅ SSH works manually
+✅ ✅ One-line (Interview)
+Ansible SSH failures with EC2 occur because AWS allows only key-based authentication, so we must use ansible_ssh_private_key_file with correct user.
+
+If you want, next I can give
+✅ Passwordless SSH setup (non-AWS servers)
+✅ Ansible ad-hoc + playbook real example 🔥
+
+
+
+
+
+You said:
+[root@k8s-control ansible]#
+[root@k8s-control ansible]#
+[root@k8s-control ansible]#
+[root@k8s-control ansible]# vim /root/mykey.pem
+[root@k8s-control ansible]#
+[root@k8s-control ansible]#
+[root@k8s-control ansible]#
+[root@k8s-control ansible]# chmod 400 /root/mykey.pem
+[root@k8s-control ansible]# ansible all -m ping -i inventory.ini -k -u root
+SSH password:
+node1 | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Failed to connect to the host via ssh: ec2-user@172.31.32.95: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).",
+    "unreachable": true
+}
+[root@k8s-control ansible]# ls -l /root/mykey.pem
+-r--------. 1 root root 1679 Jun 24 11:06 /root/mykey.pem
+[root@k8s-control ansible]# cat ansible.cfg
+[defaults]
+inventory = inventory.ini
+host_key_checking = False
+
+
+[privilege_escalation]
+become = True
+become_user = root
+[root@k8s-control ansible]# cat inventory.ini
+node1 ansible_host=172.31.32.95 ansible_user=ec2-user
+[root@k8s-control ansible]# i want to use localhost to test ansible 
+
+Copilot said:
+Got it ✅ — you want to test Ansible on localhost (no SSH issues, simple setup).
+
+✅ ✅ Best Way to Use Ansible with localhost
+👉 No SSH required ✅
+👉 No key required ✅
+👉 No password required ✅
+
+✅ ✅ Fix your inventory.ini
+Replace with this:
+
+localhost ansible_connection=local
+✅ ✅ No need for SSH options
+👉 DO NOT use these:
+
+-k ❌
+-u root ❌
+✅ ✅ Run command
+ansible all -m ping
+✅ ✅ Expected Output
+localhost | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+✅ ✅ Why this works
+ansible_connection=local → tells Ansible:
+“Run directly on this system”
+No SSH involved
+✅ ✅ Your final setup
+inventory.ini
+localhost ansible_connection=local
+ansible.cfg (keep same)
+[defaults]
+inventory = inventory.ini
+host_key_checking = False
+
+[privilege_escalation]
+become = True
+become_user = root
+✅ ✅ Bonus (Run command with sudo)
+If needed:
+
+ansible all -m command -a "whoami"
+✅ Output:
+
+root
+✅ ✅ Important Interview Point
+For remote servers → use SSH
+For localhost testing → use:
+ansible_connection=local ✅
+✅ ✅ Common mistake you did
+Tried localhost via SSH ❌
+Used AWS-style key for local ❌
+✅ ✅ One-line (Interview)
+To run Ansible on localhost, use ansible_connection=local to avoid SSH and execute directly.
+
+If you want next, I can give
+🔥 Mini playbook (install nginx on localhost)
+🔥 Real-world Ansible workflow
+
+
+
+
+
+You said:
+become = True
+become_user = root
+[root@k8s-control ansible]# cat inventory.ini
+node1 ansible_host=172.31.32.95 ansible_user=ec2-user
+[root@k8s-control ansible]# vim inventory.ini
+[root@k8s-control ansible]#
+[root@k8s-control ansible]#
+[root@k8s-control ansible]# ansible all -m ping -i inventory.ini
+localhost | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Failed to connect to the host via ssh: root@localhost: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).",
+    "unreachable": true
+}
+[root@k8s-control ansible]# cat inventory.ini
+localhost ansible_host=localhost
+[root@k8s-control ansible]# ansible all -m ping -i inventory.ini
+localhost | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Failed to connect to the host via ssh: root@localhost: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).",
+    "unreachable": true
+}
+[root@k8s-control ansible]# ansible all -m ping
+localhost | UNREACHABLE! => {
+    "changed": false,
+    "msg": "Failed to connect to the host via ssh: root@localhost: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).",
+    "unreachable": true
+}
+[root@k8s-control ansible]#
+
+Copilot said:
+You are very close ✅ — problem is just one small config mistake.
+
+❌ Why it is still failing
+Your inventory:
+
+localhost ansible_host=localhost
+👉 This tells Ansible:
+
+Use SSH to localhost ❌
+Try to login as root via SSH ❌
+→ SSH is failing (Permission denied)
+✅ ✅ Correct Fix (FINAL)
+✅ Replace your inventory with:
+
+localhost ansible_connection=local
+✅ ✅ Important Difference
+❌ ansible_host=localhost → uses SSH
+✅ ansible_connection=local → NO SSH (runs locally)
+✅ ✅ Run command (no extra flags)
+ansible all -m ping
+✅ ✅ Expected Output
+localhost | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+✅ ✅ DO NOT USE
+-k ❌
+-u root ❌
+👉 These are only for SSH — not needed for localhost
+
+✅ ✅ Your final setup
+inventory.ini
+localhost ansible_connection=local
+ansible.cfg (keep as it is)
+[defaults]
+inventory = inventory.ini
+host_key_checking = False
+
+[privilege_escalation]
+become = True
+become_user = root
+✅ ✅ Quick check if still failing
+Run:
+
+ansible localhost -m ping -c local
+👉 This forces local connection ✅
+
+✅ ✅ Important Interview Point
+ansible_host → remote server via SSH
+ansible_connection=local → run on same machine ✅
+✅ ✅ One-line (very important)
+To run Ansible on localhost without SSH, use ansible_connection=local instead of ansible_host.
+
+If you want next, I can give
+🔥 1 real playbook (install nginx locally + verify) → very important for interview
+
+
+
+
+
+You said:
+---
+- name: varibale check
+  hosts: all
+  vars:
+    - ajay
+    - vijay
+  tasks:
+    - name: create multiple users
+      ansible.buidin.user:
+        name: "{{ user_name }}"
+        state: present
+
+Copilot said:
+Good ✅ — your playbook has 2 mistakes (very important interview level). Let’s fix properly 👇
+
+❌ Issues in your playbook
+❌ 1. Wrong variable format
+vars:
+  - ajay
+  - vijay
+👉 This is incorrect YAML for variables
+
+❌ 2. Typo in module name
+ansible.buidin.user ❌
+✅ Correct:
+
+ansible.builtin.user ✅
+❌ 3. Variable not defined properly
+name: "{{ user_name }}"
+👉 user_name is not defined → will fail
+
+✅ ✅ Correct Playbook (Working)
+---
+- name: variable check
+  hosts: all
+
+  vars:
+    users:
+      - ajay
+      - vijay
+
+  tasks:
+    - name: create multiple users
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ users }}"
+
 
 13. Explain different methods of defining variabes ?
 Variables in Ansible can be defined in multiple places depending on requirement and flexibility.
