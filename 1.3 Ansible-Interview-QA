@@ -376,41 +376,119 @@ Jinja2 if/for → dynamic logic in templates
 Jinja2 template → generate dynamic config files
 
 
-26. What is ansible roles and how to create a role ? ansible-galaxy init <role-name>    Ansible roles are a structured way of grouping tasks, handlers, files, templates, and variables for reuse and better organization.”
-27. Explain directory structure of ansibe role ?
-28. What os ansible collections ? How to install a single & multiple colection
-29. What is magic variable ? 
-30. How failure is ignored in ansible playbook ? failed_when = false
-31. What is idempotency in Ansible?                                    --- Idempotency in Ansible ensures that running the same playbook multiple times will not change the system after it has already reached the desired state.”
-32. What is difference between command and shell module?
-33. What is become in Ansible?
-34. What is difference between task and handler?
-35. What is changed_when in Ansible?
-36. What are block, rescue and always in Ansible?
-37. What is delegate_to in Ansible?
-38. What is difference between include and import?
-39. What is Ansible module?
-40. What is difference between role and playbook?
-41. What is Ansible ad-hoc command?
-42. What is difference between copy and template module?
-43. What is host_vars and group_vars?
+26. What is ansible roles and how to create a role ? 
+ansible-galaxy init <role-name>    
+Ansible roles are a structured way of grouping tasks, handlers, files, templates, and variables for reuse and better organization.”
 
-44. What is inventory variable precedence?
-Variable precedence in Ansible determines which variable value overrides others when the same variable is defined at 
-different levels like inventory, playbook, or extra vars.”
-Inside inventory, variables can be defined at:
-  --- Group level
-  --- Host level
-Host variables override group variables
+27. Explain directory structure of ansible role ?
+roles/
+  role_name/
+    tasks/main.yml        → main tasks
+    handlers/main.yml     → handlers
+    files/                → static files
+    templates/            → jinja2 templates
+    vars/main.yml         → high priority variables
+    defaults/main.yml     → low priority variables
+    meta/main.yml         → role metadata
+
+28. What is ansible collections ? How to install single & multiple collection
+Definition: Collections are packaging format for roles, modules and plugins.
+Install single:
+ansible-galaxy collection install ansible.posix
+Install multiple:
+ansible-galaxy collection install -r requirements.yml
+
+29. What is magic variable ?
+Special read-only variables automatically provided by Ansible.
+Examples:
+{{ inventory_hostname }}
+{{ ansible_host }}
+{{ groups }}
+
+30. How failure is ignored in ansible playbook ?
+ignore_errors: yes
+or
+failed_when: false
+
+31. What is idempotency in Ansible?
+Idempotency ensures repeated execution gives same result without changes.
+Idempotency in Ansible ensures that running the same playbook multiple times will not change the system after it has already reached the desired state.”
+
+32. Difference between command and shell module?
+command → no shell, secure
+shell → runs through shell, supports redirection and pipes
+
+33. What is become in Ansible?
+Used for privilege escalation (sudo/root access)
+
+34. Difference between task and handler?
+Task → runs always
+Handler → runs only when notified
+
+35. What is changed_when in Ansible?
+Controls when task should be marked as changed
+Example:
+changed_when: false
+
+36. What are block, rescue and always?
+block → group tasks
+rescue → runs if block fails
+always → runs always
+
+37. What is delegate_to in Ansible?
+Run a task on different host
+Example:
+delegate_to: localhost
+
+38. Difference between include and import?
+import → static (compile time)
+include → dynamic (runtime)
+
+39. What is Ansible module?
+Module is a unit of work executed on managed nodes
+Example: copy, file, service
+
+40. Difference between role and playbook?
+Role → reusable component
+Playbook → full execution workflow
+
+41. What is Ansible ad-hoc command?
+One-line command execution
+Example:
+ansible all -m ping
+
+42. Difference between copy and template module?
+copy → static file
+template → dynamic file using Jinja2
+
+43. What is host_vars and group_vars?
+host_vars → host specific variables
+group_vars → group variables
 
 45. What is dynamic inventory?
+Inventory generated automatically from cloud providers
+
 46. What is Ansible Galaxy?
-47. How to debug a failed Ansible playbook?                            --- v → basic    -vv → more details   -vvv → full debug , ignore_errors: yes, failed_when: result.rc not in [0, 3]
-48. What is difference between static import and dynamic includes?     --- Static import is processed at playbook parsing time, while dynamic include is processed at runtime and supports conditions and loops.
-49. What is serial keyword in playbook?                                --- serial controls how many hosts run at a time. Used for rolling updates / zero downtime deployment
-50. What is difference between push and pull configuration management? --- ansible-pull -U https://github.com/repo.git site.yml
-51. Why loop doesn't work with import_tasks?                           --- Import happens before execution, Loop runs during execution , So import cannot use runtime data
-52. When to Use Pull Model?                                            --- 1000+ servers (scaling issue), Nodes behind NAT/firewall , Continuous compliance needed
+Public repository to share roles and collections
+
+47. How to debug a failed Ansible playbook?
+--- v → basic    -vv → more details   -vvv → full debug , ignore_errors: yes, failed_when: result.rc not in [0, 3]
+
+48. What is difference between static import and dynamic includes?
+--- Static import is processed at playbook parsing time, while dynamic include is processed at runtime and supports conditions and loops.
+
+49. What is serial keyword in playbook?
+--- serial controls how many hosts run at a time. Used for rolling updates / zero downtime deployment
+
+50. What is difference between push and pull configuration management?
+--- ansible-pull -U https://github.com/repo.git site.yml
+
+51. Why loop doesn't work with import_tasks?
+--- Import happens before execution, Loop runs during execution , So import cannot use runtime data
+
+52. When to Use Pull Model?
+-- 1000+ servers (scaling issue), Nodes behind NAT/firewall , Continuous compliance needed
+
 53. Explain commands pull model of ansible ?                         
 ansible-pull -U <repo_url> <playbook>
 -U    → Git repo URL
@@ -449,3 +527,117 @@ ansible-galaxy collection install .
 ansible-galaxy collection list
 
 56. give a full jinja2 template and other fies using condition loop if else for 4 servers where 2 servers is in manitenance
+✅ ✅ ✅ 1. Inventory (inventory.ini)
+[web]
+server1 ansible_host=10.1.1.1
+server2 ansible_host=10.1.1.2
+server3 ansible_host=10.1.1.3
+server4 ansible_host=10.1.1.4
+
+
+✅ ✅ ✅ 2. group_vars/all/main.yml
+app_port: 8080
+
+servers:
+  - name: server1
+    maintenance: false
+  - name: server2
+    maintenance: true
+  - name: server3
+    maintenance: false
+  - name: server4
+    maintenance: true
+
+
+✅ ✅ ✅ 3. Playbook (generate_config.yml)
+---
+- name: Generate config file using Jinja2
+  hosts: web
+  become: true
+
+  tasks:
+    - name: Generate application config
+      ansible.builtin.template:
+        src: config.j2
+        dest: /tmp/app_config.txt
+
+
+✅ ✅ ✅ 4. Jinja2 Template (templates/config.j2)
+✅ Includes:
+
+loop ✅
+if condition ✅
+else ✅
+
+# Application Configuration
+
+port = {{ app_port }}
+
+# Server Status
+
+{% for srv in servers %}
+
+{% if srv.maintenance %}
+# {{ srv.name }} is in MAINTENANCE ❌
+server {{ srv.name }} status=DOWN
+
+{% else %}
+# {{ srv.name }} is ACTIVE ✅
+server {{ srv.name }} status=UP
+
+{% endif %}
+
+{% endfor %}
+
+
+✅ ✅ ✅ 5. Output File (Generated)
+👉 /tmp/app_config.txt
+# Application Configuration
+
+port = 8080
+
+# Server Status
+
+# server1 is ACTIVE ✅
+server server1 status=UP
+
+# server2 is in MAINTENANCE ❌
+server server2 status=DOWN
+
+# server3 is ACTIVE ✅
+server server3 status=UP
+
+# server4 is in MAINTENANCE ❌
+server server4 status=DOWN
+
+
+✅ ✅ ✅ 6. Folder Structure (Git-ready)
+project/
+├── inventory.ini
+├── generate_config.yml
+├── group_vars/
+│   └── all/
+│       └── main.yml
+└── templates/
+    └── config.j2
+
+
+✅ ✅ ✅ Execution Command
+ansible-playbook -i inventory.ini generate_config.yml
+
+
+✅ ✅ ✅ Real Understanding
+👉 loop:
+{% for srv in servers %}
+
+👉 condition:
+{% if srv.maintenance %}
+
+👉 variable usage:
+{{ srv.name }}
+{{ app_port }}
+
+
+✅ ✅ ✅ One-line (INTERVIEW GOLD)
+Jinja2 templates allow dynamic configuration generation using loops and conditions, enabling different
+behavior based on variables like server maintenance status.
