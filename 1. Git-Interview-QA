@@ -1,25 +1,355 @@
 ********************** GIT ************************
-1. What is version control system ?
-2. How many types of vcs ?
-3. What is the difference between DVCS & CVCS ?
-4. What is git merge ?
-5. What is git rebase ?
-6. What is squash in git ?    git merge --squash feature
-7. What is stash in git ?     Clean working directory and temporarily save wip files 
-8. What is git reset ?        git reset --soft HEAD~1  git reset is used to undo commits or staging changes by moving the HEAD pointer.---When commit is wrong & code is right (--softundo commit, keep staged, (default)undo commit, unstage, --hard delete everything)
-9. What is git revert ?    git revert commit-ID   Git revert undo the changes of a previous commit without deleting history & creates a new commit
-10. What is difference between reset and revert ?
-11. What is git fetch ? 
-12. What is git pull ?
-13. What is the difference between fetch and pull ?
-14. What is git conflict ?
-15. What is git cherry-pick ?   Git cherry-pick applies a specific commit from one branch to another./Hotfix/Bugfix
-16. What is .gitignore ?
-17. What is git reflog ?     git reflog shows history of HEAD movements--- Shows all changes to HEAD (even deleted commits can be recovered).
-18. What is git blame?     git blame <file>    Shows who last modified each line of a file.
+
+1. What is Version Control System (VCS)?
+A Version Control System is a tool that tracks and manages changes in files over time, mainly used for source code.
+
+Maintains history of changes
+Allows collaboration between multiple users
+Helps in rollback (restore previous version)
+Tracks who made changes and when
+
+✅ One-line: VCS is used to track, manage, and control changes in files efficiently.
+
+2. How many types of VCS?
+There are 3 types of Version Control Systems:
+
+
+Local VCS
+
+Works on a single system
+No collaboration
+Example: RCS
+
+
+
+Centralized VCS (CVCS)
+
+One central server stores code
+Users commit to central repo
+Example: SVN, CVS
+
+
+
+Distributed VCS (DVCS)
+
+Each user has full copy of repo
+Supports offline work
+Example: Git
+
+
+
+
+3. Difference between DVCS & CVCS
+DVCS:
+
+No central dependency (each user has full repo)
+Works offline
+Faster operations
+Better branching & merging
+Example: Git
+
+CVCS:
+
+Depends on central server
+Requires network connection
+Slower compared to DVCS
+Limited branching support
+Example: SVN
+
+✅ Key point (interview):
+DVCS is more reliable and flexible than CVCS because it does not depend on a central server.
+
+4. What is Git Merge?
+Git Merge is used to combine changes from one branch into another branch.
+
+Integrates feature branch into main branch
+Creates a merge commit (in most cases)
+Keeps complete branch history
+
+✅ Example:
+
+Feature branch → merge into main
+
+✅ One-line: Git Merge combines changes from one branch to another while preserving history.
+
+5. What is Git Rebase?
+Git Rebase is used to move or reapply commits on top of another branch.
+
+Rewrites commit history
+Makes linear/clean history
+No merge commit created
+
+✅ Example:
+
+Feature branch commits moved on top of latest main
+
+
+✅ Merge vs Rebase (quick interview point)
+
+Merge → keeps history, creates merge commit
+Rebase → rewrites history, cleaner linear flow
+
+6. What is squash in Git?
+Git squash is used to combine multiple commits into a single commit.
+
+Helps keep commit history clean and readable
+Commonly used before merging feature branch
+Reduces unnecessary small commits
+
+✅ Command:
+git merge --squash feature
+✅ Example:
+
+5 commits in feature branch → squash → 1 commit in main
+
+✅ One-line: Squash merges multiple commits into one to maintain a clean commit history.
+
+7. What is stash in Git?
+Git stash is used to temporarily save uncommitted changes and clean the working directory.
+
+Saves work-in-progress (WIP)
+Useful when switching branches quickly
+Restores changes later
+
+✅ Commands:
+git stash
+git stash pop
+git stash list
+✅ Example:
+
+You made changes but not committed → stash → switch branch → come back → apply stash
+
+✅ One-line: Git stash temporarily stores uncommitted changes without committing them.
+
+8. What is git reset?
+Git reset is used to undo commits or staging changes by moving the HEAD pointer.
+✅ Types:
+
+
+--soft
+
+Undo commit, keep changes staged
+Example: git reset --soft HEAD~1
+
+
+
+(default --mixed)
+
+Undo commit, unstage changes
+Code stays in working directory
+
+
+
+--hard
+
+Deletes commit + staging + working directory changes
+Dangerous (data loss)
+
+
+
+✅ Use case:
+
+Commit message wrong or commit mistake → fix using reset
+
+✅ One-line: Git reset moves HEAD to undo commits and control staging/working directory changes.
+
+9. What is git revert?
+Git revert is used to undo changes of a previous commit without deleting history.
+
+Creates a new commit
+Safe for shared branches
+Does not remove old commit
+
+✅ Command:
+git revert 
+✅ Example:
+
+Fix production issue by reverting bad commit
+
+✅ One-line: Git revert creates a new commit that reverses the changes of a previous commit.
+
+✅ Reset vs Revert (very important interview point)
+
+
+Reset
+
+Rewrites history
+Can delete commits
+Not safe for shared branches
+
+
+
+Revert
+
+Keeps history intact
+Creates new commit
+Safe for production use
+
+10. Difference between git reset and git revert
+Git Reset:
+
+Moves HEAD pointer
+Deletes or modifies commit history
+Can remove commits permanently
+Not safe for shared/production branches
+Used for local undo
+
+Git Revert:
+
+Does NOT delete history
+Creates a new commit to undo changes
+Safe for shared/production branches
+Keeps full audit history
+
+✅ Key point (interview):
+Reset rewrites history, Revert preserves history.
+
+11. What is git fetch?
+Git fetch is used to download latest changes from remote repository without merging them.
+
+Updates local copy of remote branches
+Does NOT change your working code
+Safe operation
+
+✅ Command:
+git fetch origin
+✅ One-line: Fetch gets latest changes but does not apply them.
+
+12. What is git pull?
+Git pull is used to fetch + merge changes from remote repository into current branch.
+
+Combines fetch + merge
+Updates your working directory
+Can create merge conflicts
+
+✅ Command:
+git pull origin main
+✅ One-line: Pull fetches and directly applies changes to your branch.
+
+13. Difference between fetch and pull
+Fetch:
+
+Only downloads changes
+Does not modify working directory
+Safe to use anytime
+Manual merge required
+
+Pull:
+
+Downloads + merges changes
+Updates working directory
+Can cause conflicts
+Automatic operation
+
+✅ Key point:
+Fetch = safe preview, Pull = direct update
+
+14. What is git conflict?
+Git conflict occurs when two changes affect the same file/line and Git cannot decide which one to keep.
+✅ When it happens:
+
+During merge
+During pull
+During rebase
+
+✅ Example:
+
+You modify line 10
+Another developer also modifies same line
+→ conflict occurs
+
+✅ How to resolve:
+
+Edit file manually
+Remove conflict markers
+Choose correct code
+Commit again
+
+✅ One-line: Git conflict happens when multiple changes overlap and require manual resolution.
+
+
+15. What is git cherry-pick?
+Git cherry-pick is used to apply a specific commit from one branch to another.
+
+Useful for hotfix / bugfix
+Does not merge entire branch
+Copies only selected commit
+
+✅ Command:
+git cherry-pick 
+✅ Example:
+
+Apply one bug fix commit from dev → main
+
+✅ One-line: Cherry-pick applies a specific commit from one branch to another.
+
+16. What is .gitignore?
+.gitignore is a file used to exclude files and directories from being tracked by Git.
+
+Prevents unnecessary files from being committed
+Common for logs, temp files, passwords
+
+✅ Example entries:
+node_modules/
+*.log
+.env
+✅ One-line: .gitignore tells Git which files to ignore and not track.
+
+17. What is git reflog?
+Git reflog shows history of all HEAD movements, even deleted commits.
+
+Tracks branch switches, resets, rebases
+Helps recover lost commits
+
+✅ Command:
+git reflog
+✅ Example:
+
+Recover accidentally deleted commit using reflog
+
+✅ One-line: Reflog helps track HEAD changes and recover lost commits.
+
+18. What is git blame?
+Git blame shows who last modified each line of a file.
+
+Helps identify responsible developer
+Useful for debugging
+
+✅ Command:
+git blame 
+✅ One-line: Git blame displays author information for each line in a file.
+
 19. What is git config?
-20. What is detached HEAD state ?  When HEAD points to a commit instead of a branch.
-21. What is git clean?        Removes untracked files.
+Git config is used to set Git configuration values (user, email, editor, etc.)
+
+Can be set at system, global, or local level
+Stores user identity and preferences
+
+✅ Commands:
+git config --global user.name "Rizwan"
+git config --global user.email "devops.rmk@gmail.com"
+✅ One-line: Git config sets user identity and configuration settings.
+
+20. What is detached HEAD state?
+Detached HEAD state occurs when HEAD points to a commit instead of a branch.
+
+Happens when checking out a specific commit
+Changes are not saved to any branch unless explicitly created
+
+✅ Example:
+git checkout 
+✅ One-line: Detached HEAD means you are not on a branch but directly on a commit.
+
+21. What is git clean?
+Git clean is used to remove untracked files from the working directory.
+
+Cleans unwanted files
+Does not affect tracked files
+
+✅ Commands:
+git clean -n   → preview
+git clean -f   → force delete
+✅ One-line: Git clean removes untracked files from the working directory.
 =======================================================================================================================
 
 Perfect 👍 this is **very important for DevOps interviews**.  
