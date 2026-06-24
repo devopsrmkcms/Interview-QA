@@ -24,10 +24,17 @@
 24. What is the difference between CMD and Entrypoint ?
 25. How to copy local file in a container ?                            --- docker cp test.txt mycontainer:/tmp/
 26. Docker exec -it con bash what this command will do ?
-27. What is docker compose, explain it ?                               --- docker-compose build/up/down/--build/ps/logs   docker-compose up -d --scale web=3
-28. Docker save/load & export/import
-Docker save
+27. What is docker compose, explain it ? 
 
+Docker Compose is a tool used to define and run multi-container Docker applications
+Uses a YAML file (docker-compose.yml)
+Runs multiple containers together with one command                              
+--- docker-compose build/up/down/--build/ps/logs   docker-compose up -d --scale web=3
+depneds-on
+
+28. Docker save/load & export/import
+
+Docker save
 Used to save Docker image into tar file
 Includes layers + metadata + history
 Used for backup / transfer
@@ -38,7 +45,6 @@ docker save -o image.tar nginx
 Save converts a Docker image into a tar file with full layers and history.
 
 Docker load
-
 Used to load image from tar file into Docker
 Restores full image with layers
 Opposite of save
