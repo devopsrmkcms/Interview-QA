@@ -1,61 +1,48 @@
 ********************** GIT ************************.
 
 1. What is Version Control System (VCS)?
-A Version Control System is a tool that tracks and manages changes in files over time, mainly used for source code..
+A Version Control System is a tool for 
+-- tracking
+-- managing
+-- controlling
+the changes in files over time, mainly used for source code..
 
-Maintains history of changes
-Allows collaboration between multiple users
-Helps in rollback (restore previous version)
-Tracks who made changes and when
-Automation  triggers
+Key Benefits
+--> Maintains history of changes
+--> Allows collaboration between multiple users
+--> Helps in rollback (restore previous version)
+--> Tracks who made changes and when
+--> Automation  triggers
 
 ✅ One-line: VCS is used to track, manage, and control changes in files efficiently.
 
 2. How many types of VCS?
-There are 3 types of Version Control Systems:
-
-
-Local VCS
-
-Works on a single system
-No collaboration
-Example: RCS
-
-
+There are 2 types of Version Control Systems
 
 Centralized VCS (CVCS)
-
-One central server stores code
-Users commit to central repo
-Example: SVN, CVS
-
-
+-- One central server stores code
+-- Users commit to central repo
+   Example: SVN, CVS
 
 Distributed VCS (DVCS)
-
-Each user has full copy of repo
-Supports offline work
-Example: Git
-
-
-
+-- Each user has full copy of repo
+-- Supports offline work
+   Example: Git
 
 3. Difference between DVCS & CVCS
 DVCS:
-
-No central dependency (each user has full repo)
-Works offline
-Faster operations
-Better branching & merging
-Example: Git
+-- No central dependency (each user has full repo)
+-- Works offline
+-- Faster operations
+-- Better branching & merging
+   Example: Git
 
 CVCS:
-
-Depends on central server
-Requires network connection
-Slower compared to DVCS
-Limited branching support
-Example: SVN
+-- Depends on central server
+-- Requires network connection
+-- Slower compared to DVCS
+-- Limited branching support
+   Example: SVN
 
 ✅ Key point (interview):
 DVCS is more reliable and flexible than CVCS because it does not depend on a central server.
@@ -69,21 +56,23 @@ Keeps complete branch history
 
 ✅ Example:
 
-Feature branch → merge into main
+Feature branch → merge into main  [git merge feature]  [git merge --squash feature]
 
 ✅ One-line: Git Merge combines changes from one branch to another while preserving history.
 
 5. What is Git Rebase?
 Git Rebase is used to move or reapply commits on top of another branch.
 
+main branch updated with latest infra changes
+Your feature branch outdated
+Use rebase → bring your commits on top without messy history
+
 Rewrites commit history
 Makes linear/clean history
 No merge commit created
 
 ✅ Example:
-
 Feature branch commits moved on top of latest main
-
 
 ✅ Merge vs Rebase (quick interview point)
 
@@ -100,13 +89,14 @@ Reduces unnecessary small commits
 ✅ Command:
 git merge --squash feature
 ✅ Example:
-
 5 commits in feature branch → squash → 1 commit in main
 
 ✅ One-line: Squash merges multiple commits into one to maintain a clean commit history.
 
 7. What is stash in Git?
-Git stash is used to temporarily save uncommitted changes and clean the working directory.
+Git stash is used to 
+-- temporarily save uncommitted changes and 
+-- clean the working directory.
 
 Saves work-in-progress (WIP)
 Useful when switching branches quickly
@@ -117,45 +107,37 @@ git stash
 git stash pop
 git stash list
 ✅ Example:
-
 You made changes but not committed → stash → switch branch → come back → apply stash
 
 ✅ One-line: Git stash temporarily stores uncommitted changes without committing them.
 
 8. What is git reset?
-Git reset is used to undo commits or staging changes by moving the HEAD pointer.
+Git reset is used to 
+-- undo commits or 
+-- staging changes by moving the HEAD pointer.
+
 ✅ Types:
 
-
 --soft
-
 Undo commit, keep changes staged
 Example: git reset --soft HEAD~1
 
-
-
 (default --mixed)
-
 Undo commit, unstage changes
 Code stays in working directory
 
-
-
 --hard
-
 Deletes commit + staging + working directory changes
 Dangerous (data loss)
 
-
-
 ✅ Use case:
-
 Commit message wrong or commit mistake → fix using reset
 
 ✅ One-line: Git reset moves HEAD to undo commits and control staging/working directory changes.
 
 9. What is git revert?
-Git revert is used to undo changes of a previous commit without deleting history.
+Git revert is used to 
+-- undo changes of a previous commit without deleting history.
 
 Creates a new commit
 Safe for shared branches
@@ -164,46 +146,38 @@ Does not remove old commit
 ✅ Command:
 git revert 
 ✅ Example:
-
 Fix production issue by reverting bad commit
-
 ✅ One-line: Git revert creates a new commit that reverses the changes of a previous commit.
-
 ✅ Reset vs Revert (very important interview point)
 
 
 Reset
-
-Rewrites history
-Can delete commits
-Not safe for shared branches
-
-
+-- Rewrites history
+-- Can delete commits
+-- Not safe for shared branches
 
 Revert
-
-Keeps history intact
-Creates new commit
-Safe for production use
+-- Keeps history intact
+-- Creates new commit
+-- Safe for production use
 
 10. Difference between git reset and git revert
 Git Reset:
-
-Moves HEAD pointer
-Deletes or modifies commit history
-Can remove commits permanently
-Not safe for shared/production branches
-Used for local undo
+-- Moves HEAD pointer
+-- Deletes or modifies commit history
+-- Can remove commits permanently
+-- Not safe for shared/production branches
+-- Used for local undo
 
 Git Revert:
-
-Does NOT delete history
-Creates a new commit to undo changes
-Safe for shared/production branches
-Keeps full audit history
+-- Does NOT delete history
+-- Creates a new commit to undo changes
+-- Safe for shared/production branches
+-- Keeps full audit history
 
 ✅ Key point (interview):
-Reset rewrites history, Revert preserves history.
+Reset rewrites history, 
+Revert preserves history.
 
 11. What is git fetch?
 Git fetch is used to download latest changes from remote repository without merging them.
@@ -229,14 +203,12 @@ git pull origin main
 
 13. Difference between fetch and pull
 Fetch:
-
 Only downloads changes
 Does not modify working directory
 Safe to use anytime
 Manual merge required
 
 Pull:
-
 Downloads + merges changes
 Updates working directory
 Can cause conflicts
