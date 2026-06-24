@@ -405,14 +405,105 @@ Examples:
 {{ ansible_host }}
 {{ groups }}
 
-30. How failure is ignored in ansible playbook ?
+✅ ✅ ✅ 30. How failure is ignored in Ansible playbook ?
+👉 In Ansible, task failures can be controlled using:
 ignore_errors: yes
-or
+OR
 failed_when: false
+
+✅ ✅ ✅ 1. ignore_errors: yes
+👉 Definition:
+Ignores task failure and allows playbook to continue execution
+
+✅ Example:
+YAML- 
+name: Check file  
+command: cat /tmp/test.txt  
+ignore_errors: yes 
+👉 If file does NOT exist:
+
+Task fails ❌
+But playbook continues ✅
+
+
+✅ Use case:
+
+non-critical tasks
+optional checks
+cleanup tasks
+
+
+⚠️ Important:
+
+Failure is still recorded ❗
+Only execution continues
+
+
+✅ ✅ ✅ 2. failed_when: false
+👉 Definition:
+Overrides failure condition and treats task as success
+
+✅ Example:
+YAML- 
+name: Check service  
+command: systemctl status nginx  
+register: result  
+failed_when: false
+👉 Even if command returns error:
+
+Task is marked SUCCESS ✅
+No failure shown ❗
+
+
+✅ Example (custom condition):
+YAML
+failed_when: result.rc not in [0, 3]
+
+👉 Means:
+
+rc=0 → OK ✅
+rc=3 → also OK ✅
+others → fail ❌
+
+
+✅ ✅ Simple Understanding
+👉 ignore_errors
+Fail → ignore → continue
+
+👉 failed_when
+Override → treat as success
+
+
+✅ ✅ ✅ When to use what
+✅ Use ignore_errors:
+When failure is acceptable but you WANT to see it
+
+✅ Use failed_when:
+When you want full control over failure logic
+
+
+✅ ✅ ✅ Advanced (Real Production Example)
+YAML- 
+name: Check NGINX  
+command: systemctl status nginx  
+register: result  
+failed_when: result.rc not in [0, 3]
+👉 Handles:
+
+running ✅
+stopped ✅
+avoids unnecessary failure ❗
+
+
+✅ ✅ ✅ One-line (INTERVIEW GOLD)
+ignore_errors allows playbook to continue after failure, whereas failed_when overrides failure conditions 
+and controls when a task should be considered failed.
 
 31. What is idempotency in Ansible?
 Idempotency ensures repeated execution gives same result without changes.
-Idempotency in Ansible ensures that running the same playbook multiple times will not change the system after it has already reached the desired state.”
+
+Idempotency in Ansible ensures that running the same playbook multiple times will not 
+change the system after it has already reached the desired state.”
 
 32. Difference between command and shell module?
 command → no shell, secure
@@ -441,8 +532,8 @@ Example:
 delegate_to: localhost
 
 38. Difference between include and import?
-import → static (compile time)
-include → dynamic (runtime)
+import → static (compile time) before the playbook execution.
+include → dynamic (runtime) support conditions and loop use and at the time of playbook execution.
 
 39. What is Ansible module?
 Module is a unit of work executed on managed nodes
