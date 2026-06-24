@@ -7,6 +7,7 @@ Maintains history of changes
 Allows collaboration between multiple users
 Helps in rollback (restore previous version)
 Tracks who made changes and when
+Automation  triggers
 
 ✅ One-line: VCS is used to track, manage, and control changes in files efficiently.
 
