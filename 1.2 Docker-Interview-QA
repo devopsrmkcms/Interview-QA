@@ -1,7 +1,7 @@
 1. What is container ?                                                 --- light weight , standalone, isolated unit having its binary & filesystem
 2. What is docker ?                                                    --- docker is tool to perform OS level virtualization and with docker we build & test images
 3. Explain docker architecture ?                                       --- Docker client , docker host, docker registry
-4. What are the states of containers ?                                 --- Running, Pasued, Stopped, Exited
+4. What are the states of containers ?                                 --- Created Running, Pasued, Stopped, Exited, Dead
 5. What is the command to create a container ?                         --- docker container run -itd --name con1 httpd
 6. How to delete image in docker ?                                     --- docker image rm <image-name>
 7. What is dangling images ?                                           --- untagged & unused iamges are called dangling images
