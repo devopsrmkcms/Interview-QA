@@ -11,7 +11,10 @@ Easy to learn and lightweight
 
 2. What other tools are there for configuration management ?
 Definition:
-Configuration management tools are used to automate system configuration, maintain consistency, and manage infrastructure at scale.
+Configuration management tools are used to 
+-- automate system configuration, 
+-- maintain consistency, and 
+-- manage infrastructure at scale.
 
 Common Tools:
 Puppet → Agent-based, declarative
