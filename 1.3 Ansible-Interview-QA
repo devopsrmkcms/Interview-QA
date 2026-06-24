@@ -101,9 +101,12 @@ become_method = sudo
 become_user = root
 become_ask_pass = True
 
-9. How to check playbook syntax is right ? ansible-playbook --syntax-check paybook.yml
+9. How to check playbook syntax is right ? 
+   ansible-playbook --syntax-check paybook.yml
 
-10. How to dry run playbook ? ansible-playbook -i inventory.ini playbook.yml --check
+10. How to dry run playbook ? 
+    ansible-playbook -i inventory.ini playbook.yml --check
+
 11. What is ansible playbook ?
 Definition:
 An Ansible playbook is a YAML file that defines a set of tasks to be executed on managed nodes to achieve the desired system state.
@@ -139,392 +142,40 @@ Usage:
 name: "{{ app_name }}"
 
 
-You said:
-SSH password:
-localhost | UNREACHABLE! => {
-    "changed": false,
-    "msg": "Failed to connect to the host via ssh: root@localhost: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).",
-    "unreachable": true
-}
-[root@k8s-control ansible]# vim inventory.ini
-[root@k8s-control ansible]#
-[root@k8s-control ansible]#
-[root@k8s-control ansible]#
-[root@k8s-control ansible]# ansible all -m ping -i inventory.ini
-node1 | UNREACHABLE! => {
-    "changed": false,
-    "msg": "Failed to connect to the host via ssh: ec2-user@172.31.32.95: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).",
-    "unreachable": true
-}
-[root@k8s-control ansible]# ansible all -m ping -i inventory.ini -k -u root
-SSH password:
-node1 | UNREACHABLE! => {
-    "changed": false,
-    "msg": "Failed to connect to the host via ssh: ec2-user@172.31.32.95: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).",
-    "unreachable": true
-}
-[root@k8s-control ansible]# cat inventory.ini
-node1 ansible_host=172.31.32.95 ansible_user=ec2-user
-[root@k8s-control ansible]# cat ansible.cfg
-[defaults]
-inventory = inventory.ini
-host_key_checking = False
-
-
-[privilege_escalation]
-become = True
-become_user = root
-[root@k8s-control ansible]#
-
-Copilot said:
-Good ✅ now we clearly see the issue — this is 100% SSH authentication problem (very common in AWS + Ansible)
-
-❌ Root Cause
-Permission denied (publickey,gssapi-keyex,gssapi-with-mic)
-👉 Means:
-
-Target server ONLY allows SSH key authentication
-Password auth is disabled
-You are trying:
-without key ❌
-or with wrong user ❌
-✅ ✅ Correct Fix (IMPORTANT – AWS EC2)
-👉 AWS EC2 does NOT allow password login by default
-
-✅ You MUST use PEM key
-✅ ✅ Step 1: Use your EC2 key
-Update inventory:
-
-node1 ansible_host=172.31.32.95 ansible_user=ec2-user ansible_ssh_private_key_file=/root/mykey.pem
-👉 Replace:
-
-/root/mykey.pem  ✅ (your actual key path)
-✅ ✅ Step 2: Fix key permissions
-VERY IMPORTANT:
-
-chmod 400 /root/mykey.pem
-✅ ✅ Step 3: Test SSH manually
-Before Ansible, always test:
-
-ssh -i /root/mykey.pem ec2-user@172.31.32.95
-✅ If this works → Ansible will work
-❌ If this fails → fix SSH first
-
-✅ ✅ Step 4: Run Ansible
-ansible all -m ping
-✅ Expected:
-
-node1 | SUCCESS => ...
-❌ ✅ Why your previous attempts failed
-❌ -k (password option)
-ansible all -k
-👉 Not working because:
-
-EC2 disables password login
-❌ -u root
-ansible all -u root
-👉 Not working because:
-
-Root SSH login is disabled
-❌ Without key
-ansible_user=ec2-user
-👉 Missing:
-
-SSH private key ❌
-✅ ✅ Final Working Setup
-✅ inventory.ini
-node1 ansible_host=172.31.32.95 ansible_user=ec2-user ansible_ssh_private_key_file=/root/mykey.pem
-✅ ansible.cfg
-[defaults]
-inventory = inventory.ini
-host_key_checking = False
-
-[privilege_escalation]
-become = True
-become_user = root
-✅ ✅ Important Interview Point (VERY IMPORTANT)
-AWS EC2:
-Password login ❌ disabled
-Root login ❌ disabled
-Only SSH key ✅ allowed
-👉 Always use:
-
-ansible_ssh_private_key_file
-✅ ✅ Quick Debug Checklist
-✅ Correct IP
-✅ Correct user (ec2-user / ubuntu)
-✅ PEM key provided
-✅ chmod 400 on key
-✅ SSH works manually
-✅ ✅ One-line (Interview)
-Ansible SSH failures with EC2 occur because AWS allows only key-based authentication, so we must use ansible_ssh_private_key_file with correct user.
-
-If you want, next I can give
-✅ Passwordless SSH setup (non-AWS servers)
-✅ Ansible ad-hoc + playbook real example 🔥
-
-
-
-
-
-You said:
-[root@k8s-control ansible]#
-[root@k8s-control ansible]#
-[root@k8s-control ansible]#
-[root@k8s-control ansible]# vim /root/mykey.pem
-[root@k8s-control ansible]#
-[root@k8s-control ansible]#
-[root@k8s-control ansible]#
-[root@k8s-control ansible]# chmod 400 /root/mykey.pem
-[root@k8s-control ansible]# ansible all -m ping -i inventory.ini -k -u root
-SSH password:
-node1 | UNREACHABLE! => {
-    "changed": false,
-    "msg": "Failed to connect to the host via ssh: ec2-user@172.31.32.95: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).",
-    "unreachable": true
-}
-[root@k8s-control ansible]# ls -l /root/mykey.pem
--r--------. 1 root root 1679 Jun 24 11:06 /root/mykey.pem
-[root@k8s-control ansible]# cat ansible.cfg
-[defaults]
-inventory = inventory.ini
-host_key_checking = False
-
-
-[privilege_escalation]
-become = True
-become_user = root
-[root@k8s-control ansible]# cat inventory.ini
-node1 ansible_host=172.31.32.95 ansible_user=ec2-user
-[root@k8s-control ansible]# i want to use localhost to test ansible 
-
-Copilot said:
-Got it ✅ — you want to test Ansible on localhost (no SSH issues, simple setup).
-
-✅ ✅ Best Way to Use Ansible with localhost
-👉 No SSH required ✅
-👉 No key required ✅
-👉 No password required ✅
-
-✅ ✅ Fix your inventory.ini
-Replace with this:
-
-localhost ansible_connection=local
-✅ ✅ No need for SSH options
-👉 DO NOT use these:
-
--k ❌
--u root ❌
-✅ ✅ Run command
-ansible all -m ping
-✅ ✅ Expected Output
-localhost | SUCCESS => {
-    "changed": false,
-    "ping": "pong"
-}
-✅ ✅ Why this works
-ansible_connection=local → tells Ansible:
-“Run directly on this system”
-No SSH involved
-✅ ✅ Your final setup
-inventory.ini
-localhost ansible_connection=local
-ansible.cfg (keep same)
-[defaults]
-inventory = inventory.ini
-host_key_checking = False
-
-[privilege_escalation]
-become = True
-become_user = root
-✅ ✅ Bonus (Run command with sudo)
-If needed:
-
-ansible all -m command -a "whoami"
-✅ Output:
-
-root
-✅ ✅ Important Interview Point
-For remote servers → use SSH
-For localhost testing → use:
-ansible_connection=local ✅
-✅ ✅ Common mistake you did
-Tried localhost via SSH ❌
-Used AWS-style key for local ❌
-✅ ✅ One-line (Interview)
-To run Ansible on localhost, use ansible_connection=local to avoid SSH and execute directly.
-
-If you want next, I can give
-🔥 Mini playbook (install nginx on localhost)
-🔥 Real-world Ansible workflow
-
-
-
-
-
-You said:
-become = True
-become_user = root
-[root@k8s-control ansible]# cat inventory.ini
-node1 ansible_host=172.31.32.95 ansible_user=ec2-user
-[root@k8s-control ansible]# vim inventory.ini
-[root@k8s-control ansible]#
-[root@k8s-control ansible]#
-[root@k8s-control ansible]# ansible all -m ping -i inventory.ini
-localhost | UNREACHABLE! => {
-    "changed": false,
-    "msg": "Failed to connect to the host via ssh: root@localhost: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).",
-    "unreachable": true
-}
-[root@k8s-control ansible]# cat inventory.ini
-localhost ansible_host=localhost
-[root@k8s-control ansible]# ansible all -m ping -i inventory.ini
-localhost | UNREACHABLE! => {
-    "changed": false,
-    "msg": "Failed to connect to the host via ssh: root@localhost: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).",
-    "unreachable": true
-}
-[root@k8s-control ansible]# ansible all -m ping
-localhost | UNREACHABLE! => {
-    "changed": false,
-    "msg": "Failed to connect to the host via ssh: root@localhost: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).",
-    "unreachable": true
-}
-[root@k8s-control ansible]#
-
-Copilot said:
-You are very close ✅ — problem is just one small config mistake.
-
-❌ Why it is still failing
-Your inventory:
-
-localhost ansible_host=localhost
-👉 This tells Ansible:
-
-Use SSH to localhost ❌
-Try to login as root via SSH ❌
-→ SSH is failing (Permission denied)
-✅ ✅ Correct Fix (FINAL)
-✅ Replace your inventory with:
-
-localhost ansible_connection=local
-✅ ✅ Important Difference
-❌ ansible_host=localhost → uses SSH
-✅ ansible_connection=local → NO SSH (runs locally)
-✅ ✅ Run command (no extra flags)
-ansible all -m ping
-✅ ✅ Expected Output
-localhost | SUCCESS => {
-    "changed": false,
-    "ping": "pong"
-}
-✅ ✅ DO NOT USE
--k ❌
--u root ❌
-👉 These are only for SSH — not needed for localhost
-
-✅ ✅ Your final setup
-inventory.ini
-localhost ansible_connection=local
-ansible.cfg (keep as it is)
-[defaults]
-inventory = inventory.ini
-host_key_checking = False
-
-[privilege_escalation]
-become = True
-become_user = root
-✅ ✅ Quick check if still failing
-Run:
-
-ansible localhost -m ping -c local
-👉 This forces local connection ✅
-
-✅ ✅ Important Interview Point
-ansible_host → remote server via SSH
-ansible_connection=local → run on same machine ✅
-✅ ✅ One-line (very important)
-To run Ansible on localhost without SSH, use ansible_connection=local instead of ansible_host.
-
-If you want next, I can give
-🔥 1 real playbook (install nginx locally + verify) → very important for interview
-
-
-
-
-
-You said:
----
-- name: varibale check
-  hosts: all
-  vars:
-    - ajay
-    - vijay
-  tasks:
-    - name: create multiple users
-      ansible.buidin.user:
-        name: "{{ user_name }}"
-        state: present
-
-Copilot said:
-Good ✅ — your playbook has 2 mistakes (very important interview level). Let’s fix properly 👇
-
-❌ Issues in your playbook
-❌ 1. Wrong variable format
-vars:
-  - ajay
-  - vijay
-👉 This is incorrect YAML for variables
-
-❌ 2. Typo in module name
-ansible.buidin.user ❌
-✅ Correct:
-
-ansible.builtin.user ✅
-❌ 3. Variable not defined properly
-name: "{{ user_name }}"
-👉 user_name is not defined → will fail
-
-✅ ✅ Correct Playbook (Working)
----
-- name: variable check
-  hosts: all
-
-  vars:
-    users:
-      - ajay
-      - vijay
-
-  tasks:
-    - name: create multiple users
-      ansible.builtin.user:
-        name: "{{ item }}"
-        state: present
-      loop: "{{ users }}"
-
-
 13. Explain different methods of defining variabes ?
 Variables in Ansible can be defined in multiple places depending on requirement and flexibility.
 
 Common Methods:
-Playbook Variables → Defined inside vars: & vars_files
-Inventory Variables → Defined in inventory file
-Host Variables → host_vars/hostname.yml
-Group Variables → group_vars/groupname.yml
-Extra Variables → Passed via CLI (-e)
-Role Variables → Inside roles (defaults/, vars/)
+-- Playbook Variables → Defined inside vars: & vars_files
+-- Inventory Variables → Defined in inventory file
+-- Host Variables → host_vars/hostname.yml
+-- Group Variables → group_vars/groupname.yml
+-- Extra Variables → Passed via CLI (-e)
+-- Role Variables → Inside roles (defaults/, vars/)
 
 14. What is variable scope and explain ? 
-Variable scope defines where a variable is accessible and how long it is available in a playbook.
 Definition:
 Variable scope defines where a variable is accessible and how long it is available during playbook execution.
 
 Scopes:
-Global Scope → Available throughout playbook
-Play Scope → Available inside a specific play
-Task Scope → Limited to a task
-Host Scope → Specific to a host
-Group Scope → Shared across a group
+-- Global Scope → Available throughout playbook--like varible passed through cli extra-vars
+-- Play Scope → Available inside a specific play  vars and vars_files
+-- Task Scope → Limited to a task
+-- Host Scope → Specific to a host
+-- Group Scope → Shared across a group
+
+
+
+Variable Priority Order (LOW → HIGH)
+1. Role defaults                (lowest)
+2. Inventory variables         (host_vars / group_vars)
+3. Playbook vars               (vars inside play)
+4. vars_files                  (external files)
+5. Role vars                   (roles/*/vars)
+6. Task vars                   (inside task)
+7. Extra vars (-e)             ✅ HIGHEST
+
+E - T - R - VF - PV - IV -RDV 
 
 Key Understanding:
 Higher precedence variables override lower ones Scope controls visibility and lifecycle
@@ -541,16 +192,190 @@ Syntax
 - debug:
    var: "{{ output }}
 
-16. How secrets and Vault is managed in ansible ?
-17. What is the difference between --ask-vault-pass & --vault-id @prompt
-18. What is ansible facts ?
-19. What gather_facts does in playbook ?                              --- gather_facts is used to collect system information (facts) from target hosts before executing tasks.
-20. What is the command to collect facts ?                            --- ansible all -m setup|more
-21. What is loop in ansible and how it is used ?
-22. Wha is conditional task in ansible ?
-23. What is handler and use of notify keywoords use ?
-24. How if & for loop used in jinja2 template ?
-25. WHat is the use jinja2 template ?
+
+✅ ✅ 16. How secrets and Vault is managed in Ansible ?
+👉 Ansible manages secrets using Ansible Vault, which encrypts sensitive data like passwords, API keys, and certificates.
+✅ Key points:
+
+Encrypt files → ansible-vault encrypt file.yml
+Decrypt → ansible-vault decrypt file.yml
+Edit securely → ansible-vault edit file.yml
+Use in playbook → via vars_files or group_vars
+
+👉 During execution:
+ansible-playbook play.yml --ask-vault-pass
+
+👉 OR via CI/CD:
+
+Vault password stored in Jenkins/AWS/GitHub secrets
+
+
+✅ ✅ 17. Difference between --ask-vault-pass & --vault-id @prompt
+👉 --ask-vault-pass
+
+Prompts for vault password once
+Used for single vault file
+Simple usage
+
+👉 Example:
+ansible-playbook play.yml --ask-vault-pass
+
+
+👉 --vault-id @prompt
+
+More flexible ✅
+Supports multiple vault passwords
+Useful for multi-env (dev/prod)
+
+👉 Example:
+ansible-playbook play.yml --vault-id dev@prompt
+
+
+✅ Key Difference
+--ask-vault-pass → basic, single vault
+--vault-id → advanced, multi-vault support ✅
+
+
+✅ ✅ 18. What is Ansible Facts ?
+👉 Ansible facts are system information collected from managed nodes (targets)
+✅ Examples:
+
+OS name
+IP address
+hostname
+CPU, memory
+disk info
+
+👉 Stored in variable:
+ansible_facts
+
+👉 Example:
+{{ ansible_hostname }}
+{{ ansible_os_family }}
+
+
+✅ ✅ 19. What gather_facts does in playbook ?
+👉 gather_facts: yes is used to collect system information (facts) from target hosts before executing tasks ✅
+👉 Default:
+gather_facts: yes ✅
+
+👉 To disable:
+gather_facts: no
+
+👉 Useful for:
+
+conditional tasks
+dynamic configuration
+
+
+✅ ✅ 20. Command to collect facts
+ansible all -m setup
+
+👉 More readable:
+ansible all -m setup | less
+
+👉 Filter example:
+ansible all -m setup -a "filter=ansible_hostname"
+
+✅ ✅ 21. What is loop in Ansible and how it is used ?
+👉 Loop is used to repeat a task multiple times with different values
+✅ Used when:
+
+creating multiple users
+installing multiple packages
+executing same task for multiple items
+
+✅ Example:
+- name: Install packages
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - httpd
+    - git
+    - vim
+
+👉 item represents each value
+
+✅ ✅ 22. What is conditional task in Ansible ?
+👉 Conditional tasks are used to run tasks only when a condition is true
+✅ Uses:
+when
+
+✅ Example:
+- name: Install httpd only on RedHat
+  ansible.builtin.package:
+    name: httpd
+    state: present
+  when: ansible_os_family == "RedHat"
+
+
+✅ ✅ 23. What is handler and use of notify keyword ?
+👉 Handler is a special task that runs only when notified
+👉 notify is used to trigger handler
+
+✅ Example:
+tasks:
+  - name: Update config file
+    ansible.builtin.copy:
+      src: file.conf
+      dest: /etc/file.conf
+    notify: restart service
+
+handlers:
+  - name: restart service
+    ansible.builtin.service:
+      name: httpd
+      state: restarted
+
+👉 Handler runs only if task changes something ✅
+
+✅ ✅ 24. How if & for loop used in Jinja2 template ?
+👉 Jinja2 is used inside templates ({{ }} / {% %})
+
+✅ IF condition:
+{% if env == "prod" %}
+Production Server
+{% else %}
+Non-production Server
+{% endif %}
+
+
+✅ FOR loop:
+{% for user in users %}
+User: {{ user }}
+{% endfor %}
+
+
+✅ ✅ 25. What is the use of Jinja2 template ?
+👉 Jinja2 is used to create dynamic configuration files in Ansible
+✅ Purpose:
+
+insert variables into files
+generate configs dynamically
+handle conditions & loops
+
+
+✅ Example:
+server_name = {{ inventory_hostname }}
+port = {{ app_port }}
+
+
+✅ Module used:
+template:
+  src: config.j2
+  dest: /etc/app.conf
+
+
+✅ ✅ ✅ One-line summaries (INTERVIEW GOLD)
+
+Loop → repeat tasks with multiple items
+Conditional (when) → run task based on condition
+Handler + notify → trigger actions only on changes ✅
+Jinja2 if/for → dynamic logic in templates
+Jinja2 template → generate dynamic config files
+
+
 26. What is ansible roles and how to create a role ? ansible-galaxy init <role-name>    Ansible roles are a structured way of grouping tasks, handlers, files, templates, and variables for reuse and better organization.”
 27. Explain directory structure of ansibe role ?
 28. What os ansible collections ? How to install a single & multiple colection
