@@ -405,6 +405,19 @@ Controls resource behavior
 ✅ lifecycle { prevent_destroy = true }
 
 34. What is terraform taint ?
+-- terraform taint → Forces a resource to be destroyed and recreated on next apply
+-- terraform taint marks a resource as “dirty”, so Terraform will destroy and recreate 
+it during the next terraform apply.
+
+✅ Why we use it
+Use this when:
+Resource is corrupted / misconfigured
+Manual changes done outside Terraform
+Instance is unhealthy
+You want to force rebuild without changing code
+
+✅ Syntax
+terraform taint <resource_type.resource_name>
 -- Definition
 Marks resource for recreation
 -- Command
