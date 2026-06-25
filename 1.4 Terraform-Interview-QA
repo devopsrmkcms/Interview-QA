@@ -1,55 +1,175 @@
-1. What is terraform ?
-2. Which language terraform uses to write codes ?
-3. What all .tf we need in working directory and their use ?
-4. What terraform init actually does ?                        --- Reads .tf file,  Downloads providers (AWS, Azure, etc.)  Prepares working directory
-5. How terraform communicates to cloud providers ?            --- Terraform uses plugin called providers to coomunicate with cloud provider using their API
+
+1. What is Terraform ?
+Terraform is an Infrastructure as Code (IaC) tool used to provision, manage and automate cloud infrastructure using code
+
+2. Which language Terraform uses to write codes ?
+Terraform uses HCL (HashiCorp Configuration Language) which is human‑readable and declarative
+
+3. What all .tf files we need in working directory and their use ?
+
+-- main.tf
+✅ Contains core infrastructure resources (EC2, VPC, etc.)
+
+-- variables.tf
+✅ Defines input variables to make code dynamic and reusable
+
+-- outputs.tf
+✅ Displays output values (IP, DNS, IDs)
+
+-- provider.tf
+✅ Defines cloud provider (AWS, Azure, etc.) and region
+
+-- terraform.tfvars
+✅ Stores actual variable values
+
+4. What terraform init actually does ?
+
+✅ Reads .tf files
+✅ Downloads required providers (AWS, Azure, etc.)
+✅ Initializes backend (state storage like S3)
+✅ Creates .terraform/ directory
+✅ Prepares working directory for execution
+
+5. How terraform communicates to cloud providers ?
+Terraform uses Providers (plugins) to communicate with cloud platforms via their APIs
+Example:
+AWS provider → interacts with AWS APIs
+Azure provider → interacts with Azure APIs
+
 6. Explain terraform project directory structure ?
+terraform-project/
+│
+├── main.tf
+├── variables.tf
+├── outputs.tf
+├── provider.tf
+├── terraform.tfvars
+│
+├── modules/
+│   ├── vpc/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│
+├── .terraform/
+├── terraform.tfstate
+├── terraform.tfstate.backup
 
-main.tf → Main file to define resources and infrastructure logic
 
-variables.tf → File to define input variables (structure only)
+-- Root files
+✅ main.tf → Main resources definition
+✅ variables.tf → Variable declarations
+✅ outputs.tf → Output values
+✅ provider.tf → Provider configuration
+✅ terraform.tfvars → Variable values
 
-terraform.tfvars → File to assign values to variables
+-- Modules
+✅ Reusable components (VPC, EC2, DB)
+✅ Helps in modular and scalable design
 
-outputs.tf → File to define output values after execution
+-- .terraform/
+✅ Stores downloaded providers/plugins
+✅ Created after terraform init
 
-provider.tf → File to define cloud providers (AWS, Azure, etc.)
+-- terraform.tfstate
+✅ Tracks real infrastructure state
+✅ Maps Terraform code ↔ actual resources
 
-backend.tf → File to configure remote state storage (S3, Azure Blob, etc.)
+-- terraform.tfstate.backup
+✅ Backup of previous state
 
-versions.tf → File to define required Terraform and provider versions
+-- Best Practice
+✅ Use remote backend (S3 + DynamoDB locking)
+✅ Do not commit state file in Git
+✅ Use modules for reusable code
+✅ Keep environments separate (dev, prod)
+✅ Follow folder structure for scalability
 
-✅ Modules
-modules/ → Directory to store reusable Terraform code
+7. How to limit creation of specific resource when many resources are defined ?
+-- Command
+✅ terraform apply -target=module.ec2
+-- What it does
+✅ Applies only the targeted resource/module
+✅ Skips other resources in the execution plan
+-- Use case
+✅ Debugging specific module
+✅ Creating only required resource (partial deploy)
 
-modules/vpc/main.tf → Defines VPC resources inside module
+8. How to destroy a particular target resource ?
+-- Command
+✅ terraform destroy -target=module.ec2
+-- What it does
+✅ Destroys only the specified resource/module
 
-modules/vpc/variables.tf → Defines inputs for module
+-- Problems of using -target
+❗ Breaks dependency graph
+❗ May leave orphan/dangling resources
+❗ Not recommended for regular use
 
-modules/vpc/outputs.tf → Returns outputs from module
+-- Best Practice
+✅ Use full terraform apply/destroy whenever possible
+✅ Use -target only for troubleshooting
 
-✅ Auto-generated Files
+9. What is the use of count in Terraform ?
+-- Definition
+count is used to create multiple instances OR conditionally create resource
 
-.terraform/ → Stores downloaded providers and modules
+-- Use cases
+✅ Create multiple resources
+✅ Enable/Disable resource (ON/OFF switch)
 
-terraform.tfstate → Stores current infrastructure state (most important)
+-- Example
+count = 3 → creates 3 instances
+count = 0 → skips resource
 
-terraform.tfstate.backup → Backup of state file
+-- Interview one-liner
+👉 count acts like a loop + conditional creation mechanism
 
-.terraform.lock.hcl → Locks provider versions for consistency
+10. What is Provider Alias ?
+-- Definition
+Provider alias allows multiple configurations of the same provider
 
-7. How to limit creation of resource where many resource mentioned in main.tf file ? terraform apply -target=module.ec2
-8. How to destroy particular tagert in terraform ? terraform destroy -target=module.ec2  Problem of target option--Can break dependency graph and May leave dangling resources
-9. What is the use of count in terraform ?                     --- count:Used to conditionally create or skip resources, count → ON/OFF switch
-10. What is Provider Alias?  Provider alias is used to define multiple configurations (multi-region / multi-account setup) of the same provider When you want to: Deploy in multiple regions ✅Usemultiple AWS accounts ✅Use different credentials ✅
+-- When to use
+✅ Multi-region deployment
+✅ Multi-account setup
+✅ Different credentials
 
-11. What is AWS api rate limit error ?    terraform apply -parallelism=2 and terraform apply -target=module.vpc 
-AWS API rate limit error occurs when too many API requests are sent in a short time, and it can be fixed by reducing parallelism, adding retries, optimizing code, or increasing service quotas
-Common in:
-Terraform apply 🔥
-Autoscaling
-Lambda / API Gateway
-CloudFormation
+-- Example idea
+✅ aws.us-east-1
+✅ aws.us-west-2
+
+-- Interview one-liner
+👉 Provider alias helps Terraform manage infra across multiple regions/accounts using same provider
+
+11. What is AWS API rate limit error ?
+-- Definition
+AWS API rate limit error happens when too many API requests are sent in short time
+
+-- Common scenarios
+✅ Terraform apply 🔥
+✅ Auto Scaling
+✅ Lambda / API Gateway
+✅ CloudFormation
+
+-- Error reason
+✅ Too many parallel requests
+✅ Large infrastructure creation
+✅ AWS throttling limits
+
+-- How to fix
+✅ Reduce parallelism
+terraform apply -parallelism=2
+✅ Target specific resources (temporary use)
+terraform apply -target=module.vpc
+✅ Optimize Terraform code
+✅ Add retry logic (provider handles some retries)
+✅ Request AWS quota increase
+
+-- Best Practice
+✅ Keep parallelism balanced (default = 10)
+✅ Use modules for structured deploy
+✅ Avoid unnecessary resource recreation
+✅ Monitor API usage
 
 12. What is terraform drift ? 
 Terraform drift happens when real infrastructure changes outside Terraform, so it no longer matches the Terraform state file
@@ -147,4 +267,338 @@ How to Fix
 -- Reconfigure backend using terraform init -reconfigure ✅
 -- use versioning
 
-   
+
+18. What is terraform state file ? Why is it important ?
+Terraform state file stores the current state of infrastructure
+-- Why important
+✅ Maps real infra ↔ terraform code
+✅ Helps in diff calculation (plan)
+✅ Required for updates & deletes
+-- One-liner
+👉 State file is the brain of Terraform
+
+19. What is remote backend in Terraform ?
+-- Definition
+Remote backend stores state file in remote storage (S3, Azure Blob)
+-- Benefits
+✅ Team collaboration
+✅ State locking
+✅ Secure storage
+-- One-liner
+👉 Remote backend = centralized + safe state management
+
+20. What is state locking ? Why needed ?
+-- Definition
+State locking prevents multiple users from modifying state at same time
+-- Example
+S3 + DynamoDB locking
+-- Why needed
+✅ Avoid state corruption
+✅ Prevent race conditions
+
+21. What is terraform plan ?
+-- Definition
+Shows execution plan before applying changes
+-- What it does
+✅ Compares state vs code
+✅ Shows create/update/delete
+-- One-liner
+👉 Dry run before apply
+
+22. Difference between terraform apply and terraform plan ?
+-- terraform plan
+✅ Preview changes
+-- terraform apply
+✅ Executes changes
+
+23. Scenario: Terraform apply failed in middle. What will you do ?
+-- Problem
+❗ Partial infra created
+-- Fix steps
+✅ Run terraform plan → check drift
+✅ Run terraform apply again → retry
+✅ Verify state consistency
+✅ Import missing resources if needed
+
+24. Scenario: State file got corrupted. How to recover ?
+-- Fix
+✅ Restore from backup (terraform.tfstate.backup)
+✅ Use remote backend versioning (S3)
+✅ Re-import resources if needed
+
+25. What is terraform import ?
+-- Definition
+Used to bring existing resource into Terraform state
+-- Example
+terraform import aws_instance.web i-123456
+-- Use case
+✅ Existing infra not created by Terraform
+
+26. Scenario: Resource already exists but Terraform wants to create it again ?
+-- Problem
+❗ Resource not in state
+-- Fix
+✅ Use terraform import
+✅ Then run terraform plan
+
+27. Difference between count and for_each ?
+-- count
+✅ Uses index (0,1,2)
+✅ Not stable for deletions
+-- for_each
+✅ Uses key-value
+✅ More stable
+-- One-liner
+👉 for_each is preferred over count for dynamic infra
+
+28. What is depends_on in Terraform ?
+-- Definition
+Explicit dependency between resources
+-- Use
+✅ Force order of execution
+-- Example
+EC2 depends on VPC
+
+29. Scenario: EC2 created before security group. Why and fix ?
+-- Problem
+❗ Missing dependency
+-- Fix
+✅ Add depends_on
+✅ Or reference SG in EC2
+
+30. What is terraform workspace ?
+-- Definition
+Workspaces allow multiple environments using same code
+-- Example
+✅ dev
+✅ prod
+-- Command
+terraform workspace new dev
+
+31. Scenario: Same code for dev & prod but different configs. How to manage ?
+-- Solution
+✅ Use workspaces
+✅ Use different tfvars files
+✅ Use separate backend
+
+32. What is lifecycle block in Terraform ?
+-- Definition
+Controls resource behavior
+-- Example
+✅ prevent_destroy
+✅ ignore_changes
+✅ create_before_destroy
+
+33. Scenario: Prevent accidental deletion of DB ?
+-- Fix
+✅ lifecycle { prevent_destroy = true }
+
+34. What is terraform taint ?
+-- Definition
+Marks resource for recreation
+-- Command
+terraform taint aws_instance.web
+-- Use case
+✅ Resource corrupted
+
+35. What is terraform destroy ?
+-- Definition
+Deletes all resources managed by Terraform
+
+36. Scenario: Only update tag without recreating resource ?
+-- Fix
+✅ Ensure update-in-place support
+✅ Use lifecycle ignore_changes if needed
+
+37. What is module in Terraform ?
+-- Definition
+Reusable block of Terraform code
+-- Example
+VPC module, EC2 module
+
+38. Scenario: Multiple teams using same infra pattern. How to manage ?
+-- Solution
+✅ Create reusable modules
+✅ Use versioning
+
+39. What is .terraform.lock.hcl file ?
+-- Definition
+Locks provider versions
+-- Purpose
+✅ Ensures consistent builds
+
+40. Scenario: Different behavior in two environments with same code ?
+-- Reason
+❗ Different provider versions
+-- Fix
+✅ Use .terraform.lock.hcl
+✅ Pin provider version
+
+✅ Terraform Lifecycle Block (Deep + Interview Ready)
+Definition
+Lifecycle block controls how Terraform handles creation, update, and deletion of resources.
+👉 It is used to override default behavior and avoid production issues.
+
+1. lifecycle block syntax
+resource "aws_instance" "web" {
+  ami           = "ami-123"
+  instance_type = "t2.micro"
+
+  lifecycle {
+    create_before_destroy = true
+    prevent_destroy       = true
+    ignore_changes        = [tags]
+  }
+}
+
+
+2. Key lifecycle arguments
+
+✅ create_before_destroy
+-- Default behavior
+❌ Destroy old → then create new
+-- With lifecycle
+✅ Create new → then destroy old
+-- Use case
+✅ Zero downtime deployment
+-- Example
+lifecycle {
+  create_before_destroy = true
+}
+
+👉 Real scenario:
+Updating EC2 AMI → ensure new instance starts before old one terminates
+
+✅ prevent_destroy
+-- Definition
+Prevents accidental deletion
+-- Example
+lifecycle {
+  prevent_destroy = true
+}
+
+👉 Real scenario:
+Production DB → don’t allow deletion even if someone runs terraform destroy
+
+✅ ignore_changes
+-- Definition
+Ignore changes in specific attributes
+-- Example
+lifecycle {
+  ignore_changes = [tags]
+}
+
+👉 Real scenario:
+Tags updated manually by another team → Terraform should not revert
+
+✅ replace_triggered_by (advanced)
+-- Definition
+Force recreation when another resource changes
+lifecycle {
+  replace_triggered_by = [aws_ami.latest]
+}
+
+👉 Use case:
+Auto recreate EC2 when AMI changes
+
+✅ Lifecycle Block – Interview Summary
+👉 Controls how Terraform behaves during changes
+👉 Helps avoid downtime, data loss, and unwanted updates
+
+🔥 Top 20 REAL Production Troubleshooting Scenarios (Platform Engineer Level)
+
+1. Terraform apply fails halfway
+✅ Run terraform plan
+✅ Re-run apply
+✅ Check state consistency
+
+2. State file locked
+✅ Check DynamoDB lock
+✅ Use terraform force-unlock <id>
+
+3. Drift detected
+✅ Run terraform plan
+✅ Fix via apply or import
+
+4. Resource exists but Terraform recreates
+✅ Use terraform import
+
+5. API rate limit error
+✅ Reduce parallelism
+✅ Optimize code
+
+6. Accidental resource deletion
+✅ Restore from backup
+✅ Re-import resource
+
+7. Failed destroy
+✅ Check dependencies
+✅ Remove dependency manually
+
+8. Module not updating
+✅ Run terraform init -upgrade
+
+9. Wrong resource order
+✅ Fix dependency using depends_on
+
+10. Sensitive data exposed in state
+✅ Use remote backend
+✅ Enable encryption
+
+11. Multi-user conflict
+✅ Enable state locking
+✅ Use remote backend
+
+12. Provider version mismatch
+✅ Pin version in versions.tf
+
+13. Backend not accessible
+✅ Fix IAM/permissions
+✅ Reconfigure backend
+
+14. EC2 recreated unexpectedly
+✅ Use ignore_changes or stable inputs
+
+15. DB deleted accidentally
+✅ Use prevent_destroy
+
+16. Need zero downtime deployment
+✅ Use create_before_destroy
+
+17. Circular dependency error
+✅ Refactor module design
+✅ Remove mutual dependency
+
+18. AWS quota exceeded
+✅ Increase limit
+✅ Reduce resource creation
+
+19. Terraform plan shows unexpected changes
+✅ Check manual changes
+✅ Verify variables
+
+20. Large infra apply is slow
+✅ Split into modules
+✅ Reduce parallelism
+✅ Deploy in phases
+
+✅ Final Interview Punchlines
+👉 lifecycle = safety + control
+👉 State file = critical (handle carefully)
+👉 Production issues = mostly state, dependency, or API-related
+
+=========================================================================================================================================================
+Simple project-EC2
+=========================================================================================================================================================
+Simple project-SG
+=========================================================================================================================================================
+Simple project-VPC
+=========================================================================================================================================================
+Simple project-S3
+=========================================================================================================================================================
+Simple project-Azure VM
+=========================================================================================================================================================
+Simple project-Azure RG, MG
+=========================================================================================================================================================
+Simple project-Azure Vnet
+=========================================================================================================================================================
