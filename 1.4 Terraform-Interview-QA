@@ -80,6 +80,7 @@ terraform-project/
 
 -- Best Practice
 ✅ Use remote backend (S3 + DynamoDB locking)
+✅ use versioning on statefile in remote backend.
 ✅ Do not commit state file in Git
 ✅ Use modules for reusable code
 ✅ Keep environments separate (dev, prod)
