@@ -81,7 +81,10 @@ terraform-project/
 -- Best Practice
 ✅ Use remote backend (S3 + DynamoDB locking)
 ✅ use versioning on statefile in remote backend.
-✅ Do not commit state file in Git
+✅ Do not commit state file in Git --  State file is stored in plain JSON format, State file can contain sensitive data
+❗ DB passwords
+❗ API keys
+❗ Access tokens
 ✅ Use modules for reusable code
 ✅ Keep environments separate (dev, prod)
 ✅ Follow folder structure for scalability
