@@ -1,5 +1,136 @@
-DevOps
-Https Status Code
-API
-Networking (DNS, Protocol, Port, Socket)
-====================================================================
+
+🌐 Networking
+
+TCP vs UDP
+OSI Model
+TCP/IP Model
+3-way handshake / 4-way termination
+Subnetting & CIDR
+NAT (SNAT / DNAT)
+Load Balancer (L4 vs L7)
+Reverse Proxy / Forward Proxy
+ARP, ICMP
+Ephemeral Ports
+Connection States
+
+
+🌍 HTTP / API
+
+HTTP Methods
+HTTP Status Codes
+Headers
+Cookies vs Sessions vs Tokens
+JWT
+Idempotency
+CORS
+API Rate Limiting
+REST vs SOAP
+
+
+🔐 Security
+
+SSH Key Authentication
+TLS/SSL
+SSL Handshake
+Certificate Chain
+Encryption vs Hashing
+Firewall (iptables/firewalld)
+IAM Basics
+Secrets Management
+Common Ports
+
+
+🖥️ Linux Internals
+
+Process Lifecycle
+Zombie / Orphan Process
+Inodes
+File Descriptors
+Soft link / Hard link
+Memory (RSS, VIRT, Swap)
+CPU vs Load Average
+/proc filesystem
+System Calls
+
+
+⚙️ Performance & Troubleshooting
+
+top / htop / ps
+netstat / ss
+lsof
+iostat / vmstat
+CPU Spike Debugging
+Memory Leak
+Disk I/O Issues
+Load Analysis
+
+
+📦 Package Management
+
+RPM / YUM / DNF
+apt / dpkg
+Repository
+Dependency Resolution
+
+
+🧠 System Design Basics
+
+URL request flow
+High Availability
+Fault Tolerance
+Scaling (Horizontal/Vertical)
+Load Distribution
+Blue-Green Deployment
+Canary Release
+
+
+📊 Logging & Monitoring
+
+Log Levels
+Log Rotation
+Centralized Logging
+Metrics vs Logs vs Traces
+Golden Signals
+
+
+💾 Storage
+
+Block vs File vs Object
+RAID (0,1,5)
+NFS / SMB
+Disk Mounting
+fstab
+
+
+🔄 DNS
+
+DNS Resolution Flow
+Recursive vs Iterative
+Record Types (A, CNAME, MX, TXT)
+TTL
+DNS Propagation
+
+
+🔌 Ports & Sockets
+
+Socket Basics
+Listening vs Established
+Port Binding
+Process-Port Mapping
+
+
+⏰ Scheduling
+
+Cron Jobs
+Cron Expressions
+at Command
+
+
+⚡ Real Scenarios
+
+High CPU issue
+Application slow
+Disk full
+SSL expired
+Service down
+API 500 error
