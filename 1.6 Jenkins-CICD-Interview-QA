@@ -26,21 +26,16 @@ Supports pipeline as code ✅
 Integrates with Git, Docker, Kubernetes ✅
 
 
-✅ ✅ 3. Jenkins Architecture
+✅ 3. Jenkins Architecture
 👉 Components:
-
-
 Master (Controller)
 → manages jobs, schedules builds
-
 
 Agent (Node)
 → executes jobs
 
-
 Executor
 → runs builds
-
 
 Plugins
 → extend functionality
@@ -67,10 +62,36 @@ Declarative ✅ (recommended)
 Scripted ✅
 
 
-✅ ✅ ✅ 6. Jenkins Pipeline Structure
-Groovypipeline {    agent any    stages {        stage('Build') {            steps {                echo "Building..."            }        }        stage('Test') {            steps {                echo "Testing..."            }        }        stage('Deploy') {            steps {                echo "Deploying..."            }        }    }}Show more lines
+6. Explain all parameters which can be used in jenkins pipeline.
 
-✅ ✅ ✅ 7. CI/CD Pipeline Flow (REAL)
+string            # Used to pass single-line text input (app name, version, URL)
+
+choice            # Used to select one value from predefined list (env: dev/test/prod)
+
+booleanParam      # Used for true/false option (enable/disable deploy, feature flag)
+
+text              # Used for multi-line input (config, JSON, YAML data)
+
+password          # Used to pass sensitive value (masked in UI, not recommended for prod)
+
+file              # Used to upload a file during build (cert, config, script)
+
+credentials       # Used to securely pass secrets like API keys, SSH keys (best practice)
+
+run               # Used to select a build from another job (job dependency)
+
+
+parameters {
+    string(name: 'APP_NAME', defaultValue: 'myapp', description: 'Application name')
+
+    choice(name: 'ENV', choices: ['dev', 'test', 'prod'], description: 'Select environment')
+
+    booleanParam(name: 'DEPLOY', defaultValue: true, description: 'Enable deployment')
+
+    credentials(name: 'CREDS_ID', description: 'Select Jenkins credentials (SSH/API key)')
+}
+``
+✅ 7. CI/CD Pipeline Flow (REAL)
 1. Developer pushes code to Git ✅
 2. Jenkins detects change ✅
 3. Build triggered ✅
@@ -80,153 +101,47 @@ Groovypipeline {    agent any    stages {        stage('Build') {            ste
 7. Deploy to server/k8s ✅
 8. Notify (Slack/Email) ✅
 
+8. Explain all jenkins built-in variables.
 
-✅ ✅ ✅ 8. Important Jenkins Concepts
+Built-in Jenkins Environment Variables
 
-✅ Pipeline as Code
-👉 Store Jenkinsfile in Git ✅
+✅ Common ones:
+BUILD_NUMBER     # Build ID
+JOB_NAME         # Job name
+WORKSPACE        # Workspace directory
+NODE_NAME        # Agent name
+BUILD_URL        # Build URL
 
-✅ SCM Integration
+pipeline {
+    agent any
 
-GitHub / GitLab / Bitbucket ✅
+    parameters {
+        string(name: 'APP_NAME', defaultValue: 'myapp')
+    }
 
+    environment {
+        ENV_TYPE = "dev"
+        VERSION  = "v1.0"
+    }
 
-✅ Triggers
+    stages {
 
-Poll SCM
-Webhooks ✅
+        stage('Print') {
+            environment {
+                STAGE_VAR = "test-stage"
+            }
+            steps {
+                echo "App: $APP_NAME"
+                echo "Env: $ENV_TYPE"
+                echo "Version: $VERSION"
+                echo "Stage Var: $STAGE_VAR"
+                echo "Build: $BUILD_NUMBER"
+            }
+        }
+    }
+}
 
-
-✅ Workspace
-
-Directory where job runs ✅
-
-
-
-✅ ✅ ✅ 9. Credentials Management (VERY IMPORTANT)
-👉 Secure storage for:
-
-passwords
-API keys
-tokens
-
-
-✅ Types:
-
-username/password
-secret text ✅
-
-
-✅ Usage:
-GroovywithCredentials([string(credentialsId: 'api_key', variable: 'API_KEY')]) {    sh 'echo $API_KEY'}Show more lines
-
-✅ ✅ ✅ 10. Integration with Ansible (REAL CASE)
-👉 Example:
-Jenkins → triggers Ansible playbook → manages servers
-
-
-✅ Jenkins step:
-GroovyansiblePlaybook(    playbook: 'site.yml',    inventory: 'inventory.ini')Show more lines
-
-✅ ✅ ✅ 11. CI/CD with Docker (REAL FLOW)
-👉 Flow:
-Code → Build Docker Image → Push to Registry → Deploy
-
-
-✅ Example:
-Groovydocker build -t app:v1 .docker push repo/app:v1Show more lines
-
-✅ ✅ ✅ 12. CI/CD with Kubernetes
-👉 Flow:
-Jenkins → Build Image → Update Deployment → K8s deploy
-
-
-✅ Example:
-kubectl apply -f deployment.yaml
-
-
-✅ ✅ ✅ 13. Jenkins Environment Variables
-$WORKSPACE
-$BUILD_NUMBER
-$JOB_NAME
-
-
-✅ ✅ ✅ 14. Real Production Pipeline (YOUR TYPE 🔥)
-👉 Based on your patching job:
-Jenkins → Clone Repo → Run Ansible → Patch Servers → Enable/Disable Nagios
-
-
-✅ ✅ ✅ 15. Common Issues & Fixes
-
-❌ Build Fails
-👉 Check logs
-👉 Fix syntax
-
-❌ SSH issue
-👉 Fix known_hosts
-👉 Credentials
-
-❌ Permission issue
-👉 Use become
-
-❌ Pipeline stuck
-👉 Check agent availability
-
-✅ ✅ ✅ 16. Best Practices (VERY IMPORTANT)
-✅ Use pipeline as code
-✅ Store secrets in Jenkins credentials
-✅ Avoid hardcoding ❌
-✅ Use modular pipeline
-✅ Add approval steps ✅
-
-✅ ✅ ✅ 17. Real Interview Scenarios 🔥
-
-✅ Scenario 1: Build failing after commit
-👉 Answer:
-
-Check console logs ✅
-Identify failing stage ✅
-Fix code / dependency ✅
-
-
-✅ Scenario 2: Jenkins cannot connect to server
-👉 Answer:
-
-Check SSH ✅
-validate credentials ✅
-check network ✅
-
-
-✅ Scenario 3: Deployment failed halfway
-👉 Answer:
-
-rollback deployment ✅
-fix issue ✅
-re-trigger pipeline ✅
-
-
-✅ Scenario 4: Secret exposed in pipeline
-👉 Answer:
-
-move to Jenkins credentials ✅
-remove hardcoding ✅
-
-
-✅ Scenario 5: Pipeline slow
-👉 Answer:
-
-parallel stages ✅
-optimize build ✅
-
-
-✅ ✅ ✅ 18. Complete DevOps Flow (Final Understanding)
-Git → Jenkins → Build → Test → Artifact → Docker → Kubernetes → Monitoring
-
-
-✅ ✅ ✅ One-line (INTERVIEW GOLD)
-Jenkins implements CI/CD by automating the build, test, and deployment pipeline, enabling faster and reliable software delivery.
-
-✅ ✅ ✅ Summary
+9. 
 
 
 
