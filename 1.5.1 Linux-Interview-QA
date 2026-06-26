@@ -1,15 +1,9 @@
-
-
-
-
-************************************************************************************************************************************************
-         **********************LINUX COMPELETE*******************************************************************
-************************************************************************************************************************************************
 ================================================================================================================================================
 Chapter-USER MANAGEMENT
 =========================
 Topics:---
 User vs Group concept
+chage , chmod, chown, useradd, usermod, groupadd, groupmod, command with all options 
 Types of users (root, system, normal user)
 User creation (useradd, adduser)
 User deletion (userdel)
@@ -34,11 +28,408 @@ Home directory management
 Default files (/etc/skel)
 File ownership & user relation
 Privilege escalation basics (sudo vs su)
+=============================================
+1. What is User vs Group in Linux ?
+User
+Individual account used to log into system
+Has UID, home directory, shell
+Owns files and processes
+
+Group
+Collection of users
+Used for permission management
+Identified by GID
+
+
+2. What are types of users in Linux ?
+Root user
+UID = 0
+Full control over system
+
+System users
+UID 1–999 (varies)
+Used by services (nginx, mysql)
+No login access
+
+Normal users
+UID 1000+
+Regular login users
+
+
+3. What is UID & GID ?
+UID
+Unique number for user
+Used internally by OS
+
+GID
+Unique number for group
+Controls group-level permissions
+
+
+4. Primary vs Secondary group ?
+Primary group
+Default group assigned to user
+File default ownership
+
+Secondary group
+Additional access groups
+Used for shared access
+
+
+5. How to create user ?
+useradd user1
+Creates user without home
+
+useradd -m user1
+Creates home directory
+
+Copies files from /etc/skel
+
+
+6. Difference between useradd and adduser ?
+useradd
+Low-level command
+Less interactive
+
+adduser
+Interactive script
+Asks password, details
+
+
+7. How to delete user ?
+userdel user1
+Removes user
+
+userdel -r user1
+Removes user + home + mail
+
+
+8. How to modify user ?
+usermod -l newname oldname
+Rename user
+
+usermod -d /home/new user1
+Change home directory
+
+usermod -s /bin/bash user1
+Change shell
+
+
+9. How to set password ?
+passwd user1
+
+Prompts for new password
+Stores in /etc/shadow
+
+
+10. How to lock/unlock user ?
+passwd -l user1
+Locks password (adds ! in shadow)
+
+passwd -u user1
+Unlocks account
+
+
+11. What is /etc/passwd ?
+
+Stores user information
+Public readable file
+Does NOT store password
+
+
+12. /etc/passwd structure ?
+username:x:UID:GID:comment:home:shell
+
+x → password stored in shadow
+shell defines login access
+
+
+13. What is /etc/shadow ?
+
+Stores encrypted passwords
+Only root can read
+Stores password aging info
+
+
+14. /etc/shadow structure ?
+username:password:lastchg:min:max:warn:inactive:expire
+
+password → hashed
+max → expiry days
+
+
+15. What is /etc/group ?
+
+Maintains group info
+Used for access control
+
+
+16. /etc/group structure ?
+groupname:x:GID:members
+
+members → comma-separated
+
+
+17. How to create group ?
+groupadd devops
+
+Creates new group
+Adds entry in /etc/group
+
+
+18. How to delete group ?
+groupdel devops
+
+Removes group
+Does not delete users
+
+
+19. How to modify group ?
+groupmod -n newname oldname
+Rename group
+
+
+20. Add user to group ?
+usermod -aG devops user1
+
+-a → append (important)
+without -a → removes existing groups
+
+
+21. Remove user from group ?
+gpasswd -d user1 devops
+Removes user from group
+
+
+22. Switch user ?
+su user1
+Switch user
+
+su - user1
+Loads full environment
+
+
+23. Difference between su and sudo ?
+su
+Switch user shell
+Needs password
+
+sudo
+Executes command
+Logs activity
+
+
+24. What is sudo access ?
+
+Allows limited root access
+Controlled via sudoers file
+Safer than root login
+
+
+25. How to give sudo access ?
+usermod -aG sudo user1 (Ubuntu)
+usermod -aG wheel user1 (RHEL)
+
+26. What is visudo ?
+
+Edits /etc/sudoers safely
+Prevents syntax errors
+Locks file during edit
+
+
+27. Passwordless sudo ?
+user1 ALL=(ALL) NOPASSWD: ALL
+
+No password required
+Use cautiously
+
+
+28. What is chage ?
+Manage password expiry
+Controls aging policy
+
+
+29. chage important options ?
+chage -l user1
+View policy
+
+chage -m 90 user1
+Min 10 days
+
+chage -M 90 user1
+Max 90 days
+
+chage -W 7 user1
+Warning before expiry
+
+
+30. Force password change ?
+passwd -e user1
+Forces change on next login
+
+
+31. What is /etc/security/limits.conf ?
+
+Controls system limits
+CPU, memory, open files
+
+domain user/group/*
+type soft/hard
+item noproc, ram cpu
+value  number
+
+
+32. Example limits.conf entry ?
+user1 soft nofile 1024
+user1 hard nofile 2048
+
+soft → warning limit
+hard → max limit
+
+
+33. What is /etc/security/pwquality.conf ?
+
+Defines password complexity
+Enforces strong passwords
+
+
+34. Example pwquality settings ?
+minlen = 8
+ucredit = -1
+dcredit = -1
+
+Enforces uppercase + digit
+
+
+35. What are bash files ?
+.bashrc
+Runs for non-login shell
+
+.profile
+Runs for login shell
+
+
+36. What is /etc/skel ?
+
+Template for new users
+Default files copied to home
+
+
+37. Home directory management ?
+useradd -m user1
+Creates home
+
+usermod -d /new user1
+Changes home
+
+
+38. File ownership commands ?
+chown user file
+Change owner
+
+chown user:group file
+Change owner + group
+
+
+39. chmod vs chown ?
+chmod
+Changes permissions
+
+chown
+Changes ownership
+
+
+40. chmod example ?
+chmod 755 file
+
+owner → rwx
+group → r-x
+others → r-x
+
+
+41. chown example ?
+chown user1 file
+Assign owner
+
+
+42. Check logged-in users ?
+who
+Active sessions
+
+w
+CPU + activity
+
+id
+UID, GID
+
+
+43. What is privilege escalation ?
+
+Gaining root access
+From lower privilege
+
+
+44. How privilege escalation happens ?
+sudo misconfig
+SUID binaries
+weak permissions
+
+45. How user environment works ?
+.bashrc
+Aliases, env variables
+
+.bash_profile
+Login settings
+Controls PATH, shell behavior
+
+46. What is setfacl ?
+
+Used to set ACL permissions on files/directories
+Allows assigning permissions to multiple users/groups
+Extends normal chmod functionality
+
+
+47. What is getfacl ?
+
+Used to view ACL permissions
+Shows detailed access control entries
+Helps verify permissions
+
+
+48. Basic getfacl example
+getfacl file1
+
+Displays owner, group, and ACL entries
+Shows extra users/groups permissions
+
+
+49. Give permission to a specific user
+setfacl -m u:user2:rw file1
+
+u:user2 → target user
+rw → read + write permissions
+
+
+50. Give permission to a group
+setfacl -m g:devops:rwx file1
+
+g:devops → target group
+rwx → full permission
+
+
+51. Remove permission for a user
+setfacl -x u:user2 file1
+
+Removes ACL entry for user2
+
+52. Remove all ACL entries
+setfacl -b file1
+
+Clears all extended permissions
+Resets to normal chmod permissions
 
 ============================================================================================================================================================
 Chapter-FILE MANAGEMENT
-
-
 ============================================================================================================================================================
 Chapter-SSH Management
 =========================
