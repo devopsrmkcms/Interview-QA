@@ -146,13 +146,9 @@ Each job has its own workspace
 
 
 2. What is a Jenkins node?
-
-A machine where Jenkins runs jobs
-Can be master or agent
-
+A machine where Jenkins runs jobs Can be master or agent
 
 3. What is Jenkins agent?
-
 Slave machine connected to Jenkins
 Executes builds assigned by master
 
