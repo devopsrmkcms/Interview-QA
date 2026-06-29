@@ -428,14 +428,29 @@ Example: success, failure
 
 
 27. What is retry in Jenkins?
+Retry in Jenkins is a Pipeline feature used to automatically 
+re-run a block of code if it fails, instead of failing the build immediately.
 
-Retries failed steps
-Helps in flaky builds
+Helps handle temporary issues like:
+Network failures
+Docker pull issues
+Dependency download errors
+Intermittent test failures
+
+retry(N) {
+   // steps to execute
+}
 
 
 28. What is timeout in Jenkins?
-                                    Stops job after time limit
-                                    Prevents stuck builds
+Timeout in Jenkins is used to stop a stage or step if it takes longer than a 
+specified time, preventing the pipeline from running indefinitely.    
+
+timeout → “Fail the build if it runs too long”
+Protects pipelines from:
+-- Hanging processes
+-- Infinite loops
+-- Slow or stuck deployments
 
 
 29. What is stash and unstash?
@@ -444,9 +459,21 @@ unstash → retrieve in later stage
 
 
 30. What is parallel execution?
+Parallel execution in Jenkins means running multiple stages or tasks at the same time 
+instead of one after another to reduce overall pipeline execution time.
 
-Run multiple stages together
-Reduces execution time
+✅ Simple Definition
+Parallel → “Run multiple stages together”
+Improves speed and efficiency of pipeline
+
+✅ Why Use Parallel?
+Reduce build time
+Execute independent tasks simultaneously
+Improve CI/CD performance
+
+👉 Example:
+Run tests on multiple environments at once
+Build multiple components in parallel
 
 
 31. What is input step?
@@ -460,7 +487,6 @@ Example: passwords, API keys
 
 
 33. How to use credentials?
-
 via withCredentials block
 Inject into environment variables
 
