@@ -1,0 +1,413 @@
+✅ ✅ Jenkins Pipeline Real Scenarios (1–50)
+✅ 🔹 BASIC + INTERMEDIATE
+
+Pipeline fails at Git checkout – how do you debug branch issue?
+Jenkins job runs but stage is skipped – why?
+How to pass parameters to pipeline and use in stages?
+Difference between scripted vs declarative — when to use each?
+How to run pipeline only on specific branch?
+How to use environment variables inside pipeline?
+How to handle sensitive data in pipeline (passwords/secrets)?
+What happens if one stage fails? How to continue pipeline?
+How to retry a failed stage?
+How to trigger pipeline manually vs automatically?
+
+
+✅ 🔹 GIT + SCM SCENARIOS
+
+Webhook not triggering pipeline — how to fix?
+Multiple branches exist — how to build only main?
+Pipeline always builds old code — what’s wrong?
+Git credentials failing in Jenkins — how to resolve?
+How to clone private repo securely?
+
+
+✅ 🔹 DOCKER + BUILD SCENARIOS
+
+Docker build fails inside Jenkins but works locally — why?
+Permission denied on /var/run/docker.sock — fix?
+Image build is slow — how to optimize?
+How to tag Docker image dynamically?
+How to clean old images in Jenkins server?
+
+
+✅ 🔹 AWS + ECR SCENARIOS
+
+ECR login fails with “no basic auth credentials” — reason?
+Cross-account ECR push not working — debug steps?
+IAM role vs Access key — which is better and why?
+Wrong region used in ECR — what happens?
+How to push same image to multiple ECR repos?
+
+
+✅ 🔹 PIPELINE DESIGN SCENARIOS
+
+How to design CI/CD pipeline for microservices?
+How to run stages in parallel?
+How to execute pipeline dynamically based on input?
+How to reuse pipeline code across multiple projects?
+How to create shared library in Jenkins?
+
+
+✅ 🔹 ERROR HANDLING SCENARIOS
+
+Pipeline fails but you want notification — how?
+How to skip deployment if tests fail?
+How to add manual approval before production deploy?
+Build succeeds but deployment fails — what next?
+How to capture logs for debugging failure?
+
+
+✅ 🔹 ADVANCED SCENARIOS
+
+How to implement blue-green deployment using Jenkins?
+How to rollback deployment in case of failure?
+Pipeline running on multiple nodes — how to control agents?
+How to run pipeline inside Docker container (agent docker)?
+How to integrate Jenkins with Kubernetes?
+
+
+✅ 🔹 SECURITY SCENARIOS
+
+Secrets exposed in logs — how to prevent?
+How to restrict who can trigger pipelines?
+How to audit pipeline changes?
+How to use Vault with Jenkins?
+How to avoid hardcoding credentials in pipelines?
+
+
+✅ 🔹 PERFORMANCE + OPTIMIZATION
+
+Pipeline taking too long — how to reduce time?
+How to cache dependencies in Jenkins?
+How to optimize Docker build in pipeline?
+How to parallelize test execution?
+Jenkins master overloaded — what solution?
+
+============================================================
+✅ ✅ 1–10 BASIC / CORE
+1. Git checkout fails
+
+Root cause: Wrong branch (master vs main)
+Fix: Specify correct branch
+Best practice: Always define branch in pipeline
+
+
+2. Stage skipped
+
+Root cause: when condition false
+Fix: Validate parameter/condition
+Best practice: Log param values
+
+
+3. Parameters not used correctly
+
+Root: Wrong reference (params.ENV)
+Fix: Use params.<name>
+Best: Validate with echo
+
+
+4. Declarative vs Scripted
+
+Declarative → structured, easy
+Scripted → flexible, complex logic
+Use declarative unless dynamic need
+
+
+5. Run pipeline on specific branch
+
+Use:
+when { branch 'main' }
+Best: Combine with multibranch pipeline
+
+
+6. Environment variables
+
+Use environment {} OR env.VAR
+Best: Centralize env variables
+
+
+7. Secrets handling
+
+Use Jenkins credentials
+Avoid hardcoding
+Use withCredentials
+
+
+8. Continue after failure
+
+Use:
+post { always {} }
+Or catchError
+
+
+9. Retry failed stage
+
+Use:
+retry(3)
+
+
+10. Trigger pipeline
+
+Manual → UI
+Auto → webhook / cron
+Best: Use webhook for CI
+
+
+✅ ✅ 11–15 GIT
+11. Webhook not working
+
+Root: Wrong webhook URL / firewall
+Fix: Verify Git → Jenkins connection
+Best: Enable logs in Git plugin
+
+
+12. Build only main
+
+Use:
+branch 'main'
+
+
+13. Old code building
+
+Root: workspace cache
+Fix:
+cleanWs()
+Best: always clean workspace
+
+
+14. Git credentials issue
+
+Root: wrong credential type
+Fix: use correct SSH/API token
+
+
+15. Private repo clone
+
+Use Jenkins credentials
+Best: SSH over HTTPS
+
+
+✅ ✅ 16–20 DOCKER
+16. Docker fails in Jenkins
+
+Root: environment mismatch
+Fix: check Dockerfile paths
+
+
+17. docker.sock permission
+
+Fix:
+usermod -aG docker jenkins
+
+
+18. Slow build
+
+Use layer caching
+Multi-stage builds
+
+
+19. Dynamic tag
+
+Use:
+${BUILD_NUMBER} or ${GIT_COMMIT}
+
+
+20. Clean images
+
+Use:
+docker system prune -f
+
+
+✅ ✅ 21–25 AWS ECR
+21. No basic auth credentials
+
+Root: login failed
+Fix: run ECR login step
+
+
+22. Cross-account ECR fails
+
+Root: trust policy / STS missing
+Fix: validate assume role
+
+
+23. IAM role vs access key
+
+Role = secure (temporary) ✅
+Access key = risky ❌
+
+
+24. Wrong region
+
+Root: mismatch
+Fix: align region
+
+
+25. Push to multiple repos
+
+Loop:
+for repo in repos
+docker push
+
+
+
+
+✅ ✅ 26–30 PIPELINE DESIGN
+26. Microservices pipeline
+
+Separate build per service
+Parallel execution
+
+
+27. Parallel stages
+
+Use:
+parallel {}
+
+
+28. Dynamic execution
+
+Use if inside script{}
+
+
+29. Reuse pipeline
+
+Use shared libraries
+
+
+30. Shared library
+
+Store common functions
+Import via @Library
+
+
+✅ ✅ 31–35 ERROR HANDLING
+31. Notifications
+
+Use:
+post { failure { mail/slack } }
+
+
+32. Skip deploy on test fail
+
+Default pipeline stops
+Or use when success()
+
+
+33. Manual approval
+
+Use:
+input "Approve?"
+
+
+34. Deployment fail
+
+Rollback or notify
+
+
+35. Capture logs
+
+Use:
+tee, archiveArtifacts
+
+
+✅ ✅ 36–40 ADVANCED
+36. Blue-green deployment
+
+Deploy new → switch traffic
+
+
+37. Rollback
+
+Use previous image tag
+
+
+38. Multiple agents
+
+Use:
+agent { label 'node' }
+
+
+39. Docker agent
+
+Use:
+agent { docker { image 'node:18' } }
+
+
+40. Jenkins + Kubernetes
+
+Use Kubernetes plugin
+Dynamic pods
+
+
+✅ ✅ 41–45 SECURITY
+41. Secrets in logs
+
+Use masking
+avoid echo
+
+
+42. Restrict pipeline trigger
+
+RBAC + permissions
+
+
+43. Audit changes
+
+Use Git + Jenkins audit logs
+
+
+44. Vault integration
+
+HashiCorp Vault plugin
+
+
+45. Avoid hardcoding
+
+Always use credentials
+
+
+✅ ✅ 46–50 PERFORMANCE
+46. Slow pipeline
+
+Parallelize stages
+
+
+47. Cache dependencies
+
+Use workspace caching
+example: .m2, node_modules
+
+
+48. Optimize Docker
+
+Multi-stage
+smaller base image
+
+
+49. Parallel testing
+
+Split test suites
+
+
+50. Jenkins overloaded
+
+Use:
+
+distributed agents
+Kubernetes autoscaling
+
+
+
+
+✅ ✅ FINAL INTERVIEW STRATEGY 🔥
+When answering:
+👉 Always say:
+
+“In production, we faced this issue…”
+Explain:
+
+Root cause
+Fix
+Prevention
