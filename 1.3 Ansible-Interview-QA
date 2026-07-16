@@ -1167,21 +1167,16 @@ Interview Gold:
  any_errors_fatal is used when failure on one host should stop execution everywhere.
 
 74. What is max_fail_percentage?
-
-Definition:
- It stops play execution if failed hosts exceed a defined percentage.
+Definition: stops playbook execution if failed hosts exceed a defined percentage.
 
 Example:
-
 - hosts: web
   max_fail_percentage: 30
-
 
 Meaning:
  If more than 30% of hosts fail, playbook stops.
 
 Use case:
-
 rolling deployments
 production clusters
 large server groups
@@ -1195,7 +1190,6 @@ Definition:
  Used to retry a task until a condition becomes true.
 
 Example:
-
 - name: Wait for application to become healthy
   uri:
     url: http://localhost:8080/health
@@ -1207,7 +1201,6 @@ Example:
 
 
 Meaning:
-
 until → condition
 retries → number of attempts
 delay → wait between attempts
@@ -1235,7 +1228,6 @@ Example: wait for file
   wait_for:
     path: /tmp/app.ready
     timeout: 120
-
 
 Interview Gold:
  wait_for is used to wait for ports, files, services, or connection readiness.
@@ -1384,7 +1376,6 @@ web01 ansible_host=10.1.1.10 ansible_user=ec2-user ansible_port=22
 
 
 Meaning:
-
 ansible_host → target IP/DNS
 ansible_user → SSH user
 ansible_port → SSH port
