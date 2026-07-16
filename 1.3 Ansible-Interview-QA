@@ -460,15 +460,11 @@ Use case:
 -->> non-critical tasks
 -->> optional checks
 -->> cleanup tasks
-
-
 ⚠️ Important: -->> Failure is still recorded ❗Only execution continues
-
 
 ✅ ✅ ✅ 2. failed_when: false
 👉 Definition:
 Overrides failure condition and treats task as success
-
 ✅ Example:
 YAML- 
 name: Check service  
@@ -476,7 +472,6 @@ command: systemctl status nginx
 register: result  
 failed_when: false
 👉 Even if command returns error:
-
 Task is marked SUCCESS ✅
 No failure shown ❗
 
@@ -519,6 +514,42 @@ failed_when: result.rc not in [0, 3]
 running ✅
 stopped ✅
 avoids unnecessary failure ❗
+
+Keyword	Use
+ignore_errors	Allows playbook execution to continue after a task failure.
+failed_when	Defines custom failure logic for a task.
+................................................
+changed_when: -->> When we checks something like service status, it doesn't modify anything." so used to make  "Changed to OK status"
+........................
+block, rescue, always	Provides structured error handling similar to try, catch, finally.
+....................................
+block  -> Execute main tasks
+rescue -> Execute only if block fails
+always -> Execute regardless of success or failure
+...............................................
+until, retries, delay	Retries a task until a condition becomes true.
+until  = Condition to become true
+retries = How many times to try
+delay   = Wait time between tries
+
+- name: Wait for application to come up
+  uri:
+    url: http://localhost:8080/health
+    status_code: 200
+  register: app_status
+
+  until: app_status.status == 200
+  retries: 6
+  delay: 5
+
+until, retries, and delay are used to repeatedly execute a task until a condition becomes true or the retry limit is reached.
+.............................................................................
+serial	Controls how many hosts are updated at a time.(zero downtime task, one by one host)
+forks	Controls parallel execution at Ansible configuration level. forks controls how many hosts Ansible can manage in parallel at the same time.
+run_once	Runs a task only once in a multi-host play.
+delegate_to	Runs a task on a different host.
+meta: flush_handlers	Runs pending handlers immediately.
+
 
 
 ✅ ✅ ✅ One-line (INTERVIEW GOLD)
@@ -1033,25 +1064,12 @@ Interview Gold:
  local_action is similar to delegate_to: localhost, but delegate_to is preferred in modern playbooks.
 
 69. What is the difference between become, become_user, and become_method?
-
-become:
- Enables privilege escalation.
-
+become:-->> Enables privilege escalation.
 become: true
-
-
-become_user:
- Defines which user to become.
-
+become_user:-->> Defines which user to become.
 become_user: root
-
-
-become_method:
- Defines escalation method.
-
+become_method: -->> Defines escalation method.
 become_method: sudo
-
-
 Interview Gold:
  become enables sudo, become_user defines target user, and become_method defines escalation method.
 
@@ -1061,7 +1079,6 @@ Definition:
  Tags are used to run specific parts of a playbook.
 
 Example:
-
 - name: Install nginx
   yum:
     name: nginx
@@ -1070,13 +1087,8 @@ Example:
     - install
 
 
-Run only tagged tasks:
-
-ansible-playbook site.yml --tags install
-
-
+Run only tagged tasks: -->> ansible-playbook site.yml --tags install
 Skip tagged tasks:
-
 ansible-playbook site.yml --skip-tags install
 
 
@@ -1112,7 +1124,6 @@ Interview Gold:
  pre_tasks are used for preparation, and post_tasks are used for cleanup or validation.
 
 72. What is meta: flush_handlers?
-
 Definition:
  meta: flush_handlers forces handlers to run immediately instead of waiting until the end of the play.
 
@@ -1127,12 +1138,11 @@ Example:
 - name: Run handler immediately
   meta: flush_handlers
 
-
 Use case:
- Restart service before executing next dependent task.
+-->> Restart service before executing next dependent task.
 
 Interview Gold:
- By default handlers run at the end, but meta: flush_handlers runs them immediately.
+-->> By default handlers run at the end, but meta: flush_handlers runs them immediately.
 
 73. What is any_errors_fatal?
 
@@ -1149,10 +1159,9 @@ Example:
 
 
 Use case:
-
-production deployment
-database upgrade
-cluster-wide validation
+-->> production deployment
+-->> database upgrade
+-->> cluster-wide validation
 
 Interview Gold:
  any_errors_fatal is used when failure on one host should stop execution everywhere.
