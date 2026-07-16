@@ -164,8 +164,6 @@ Scopes:
 -- Host Scope → Specific to a host
 -- Group Scope → Shared across a group
 
-
-
 Variable Priority Order (LOW → HIGH)
 1. Role defaults                (lowest)
 2. Inventory variables         (host_vars / group_vars)
@@ -190,7 +188,7 @@ Syntax
   register: output
 
 - debug:
-   var: "{{ output }}
+   var: output 
 
 
 ✅ ✅ 16. How secrets and Vault is managed in Ansible ?
@@ -248,11 +246,9 @@ disk info
 
 👉 Stored in variable:
 ansible_facts
-
 👉 Example:
 {{ ansible_hostname }}
 {{ ansible_os_family }}
-
 
 ✅ ✅ 19. What gather_facts does in playbook ?
 👉 gather_facts: yes is used to collect system information (facts) from target hosts before executing tasks ✅
@@ -263,7 +259,6 @@ gather_facts: yes ✅
 gather_facts: no
 
 👉 Useful for:
-
 conditional tasks
 dynamic configuration
 
@@ -346,6 +341,40 @@ Non-production Server
 User: {{ user }}
 {% endfor %}
 
+Online_Servers
+==============
+
+{% for server in servers %}
+{% if server.status == "online" %}
+server_name = {{ server.name }}
+server_ip   = {{ server.ip_address }}
+{% endif %}
+{% endfor %}
+
+Offline_Servers
+===============
+{% for server in servers %}
+{% if server.status == "offline" %}
+server_name = {{ server.name }}
+server_ip   = {{ server.ip_address }}
+
+{% endif %}
+{% endfor %}
+
+---
+servers:
+  - name: web01
+    ip_address: 1.1.1.1
+    status: online
+
+  - name: web02
+    ip_address: 1.1.1.2
+    status: online
+
+  - name: web03
+    ip_address: 1.1.1.3
+    status: offline
+
 
 ✅ ✅ 25. What is the use of Jinja2 template ?
 👉 Jinja2 is used to create dynamic configuration files in Ansible
@@ -405,15 +434,17 @@ Examples:
 {{ ansible_host }}
 {{ groups }}
 
-✅ ✅ ✅ 30. How failure is ignored in Ansible playbook ?
-👉 In Ansible, task failures can be controlled using:
+
+30. How task failure is ignored in Ansible playbook ?
+task failures can be controlled using:
 ignore_errors: yes
 OR
 failed_when: false
 
 ✅ ✅ ✅ 1. ignore_errors: yes
 👉 Definition:
-Ignores task failure and allows playbook to continue execution
+task failure ignored and allows playbook to continue execution 
+Suppose you try to read a file that does not exist.
 
 ✅ Example:
 YAML- 
@@ -425,18 +456,13 @@ ignore_errors: yes
 Task fails ❌
 But playbook continues ✅
 
-
-✅ Use case:
-
-non-critical tasks
-optional checks
-cleanup tasks
+Use case:
+-->> non-critical tasks
+-->> optional checks
+-->> cleanup tasks
 
 
-⚠️ Important:
-
-Failure is still recorded ❗
-Only execution continues
+⚠️ Important: -->> Failure is still recorded ❗Only execution continues
 
 
 ✅ ✅ ✅ 2. failed_when: false
@@ -732,3 +758,1286 @@ ansible-playbook -i inventory.ini generate_config.yml
 ✅ ✅ ✅ One-line (INTERVIEW GOLD)
 Jinja2 templates allow dynamic configuration generation using loops and conditions, enabling different
 behavior based on variables like server maintenance status.
+
+Below are 30 more extremely important Ansible interview questions and answers continuing from your list.
+
+57. What is ansible.cfg and why is it important?
+
+Definition:
+ ansible.cfg is the main configuration file used to control Ansible behavior.
+
+It controls:
+
+inventory path
+remote user
+privilege escalation
+SSH behavior
+host key checking
+roles path
+retry files
+forks/parallelism
+
+Example:
+
+[defaults]
+inventory = ./inventory.ini
+remote_user = ec2-user
+host_key_checking = False
+forks = 10
+
+[privilege_escalation]
+become = True
+become_method = sudo
+become_user = root
+
+
+Interview Gold:
+ ansible.cfg customizes how Ansible runs without passing options repeatedly in every command.
+
+58. What is the difference between vars and vars_files?
+
+vars:
+ Variables are written directly inside the playbook.
+
+vars:
+  app_name: nginx
+  app_port: 80
+
+
+vars_files:
+ Variables are loaded from an external YAML file.
+
+vars_files:
+  - vars/main.yml
+
+
+Key Difference:
+
+vars → inline variables
+vars_files → external variable files
+
+Interview Gold:
+ Use vars_files when variables are large, reusable, or need clean separation from playbook logic.
+
+59. What is extra-vars in Ansible?
+
+Definition:
+ extra-vars are variables passed from the command line using -e.
+
+Example:
+
+ansible-playbook deploy.yml -e "app_version=1.2.3 env=prod"
+
+
+Important Point:
+ extra-vars have the highest variable precedence in Ansible.
+
+Interview Gold:
+ extra-vars override all other variables and are commonly used in CI/CD pipelines.
+
+60. What is the difference between set_fact and normal variables?
+
+Normal Variables:
+ Defined before task execution.
+
+vars:
+  app_name: nginx
+
+
+set_fact:
+ Creates variables dynamically during playbook execution.
+
+- name: Set dynamic variable
+  set_fact:
+    service_name: nginx
+
+
+Key Difference:
+
+vars → static variable
+set_fact → runtime variable
+
+Interview Gold:
+ set_fact is used when variable value depends on task output or runtime conditions.
+
+61. What is the use of debug module?
+
+Definition:
+ debug module is used to print messages or variable values during playbook execution.
+
+Example:
+
+- name: Print hostname
+  debug:
+    msg: "Current host is {{ inventory_hostname }}"
+
+
+Print registered variable:
+
+- debug:
+    var: result
+
+
+Interview Gold:
+ debug is mainly used for troubleshooting variables, conditions, and task outputs.
+
+62. What is ansible-playbook -C?
+
+Definition:
+ -C is short form of --check.
+
+Command:
+
+ansible-playbook -i inventory.ini site.yml -C
+
+
+Meaning:
+ It performs a dry run and shows what changes would happen without actually applying them.
+
+Interview Gold:
+ -C or --check is used to test playbook impact before applying changes.
+
+63. What is diff mode in Ansible?
+
+Definition:
+ diff mode shows the difference between current and desired file content.
+
+Command:
+
+ansible-playbook -i inventory.ini playbook.yml --diff
+
+
+Use case:
+
+configuration file changes
+template changes
+copy module changes
+
+Example:
+
+ansible-playbook site.yml --check --diff
+
+
+Interview Gold:
+ --diff is useful to review configuration changes before deployment.
+
+64. What is forks in Ansible?
+
+Definition:
+ forks controls how many hosts Ansible manages in parallel.
+
+Example in ansible.cfg:
+
+[defaults]
+forks = 20
+
+
+Default:
+ Usually 5.
+
+Use case:
+
+increase speed for large inventory
+control parallel execution
+
+Interview Gold:
+ forks improves execution speed by running tasks on multiple hosts in parallel.
+
+65. What is serial vs forks?
+
+forks:
+ Controls parallelism globally.
+
+forks = 20
+
+
+serial:
+ Controls batch size inside playbook.
+
+- hosts: web
+  serial: 2
+
+
+Key Difference:
+
+forks → maximum parallel SSH connections
+serial → how many hosts are updated at a time
+
+Interview Gold:
+ forks controls execution speed, while serial controls rolling deployment behavior.
+
+66. What is run_once in Ansible?
+
+Definition:
+ run_once makes a task run only one time, even if multiple hosts are targeted.
+
+Example:
+
+- name: Run database migration only once
+  command: /opt/app/migrate.sh
+  run_once: true
+
+
+Use case:
+
+database migration
+notification
+creating shared resource
+one-time validation
+
+Interview Gold:
+ run_once is used when a task should execute only once in a multi-host play.
+
+67. What is delegate_to with run_once?
+
+Definition:
+ Used to run a task only once on a specific host.
+
+Example:
+
+- name: Generate report locally
+  command: echo "Deployment completed"
+  delegate_to: localhost
+  run_once: true
+
+
+Use case:
+
+sending notification from localhost
+creating load balancer entry
+calling API once
+generating deployment report
+
+Interview Gold:
+ delegate_to changes the execution host, and run_once prevents repeated execution.
+
+68. What is local_action in Ansible?
+
+Definition:
+ local_action runs a task on the Ansible control node instead of managed nodes.
+
+Example:
+
+- name: Run command on control node
+  local_action:
+    module: command
+    cmd: date
+
+
+Modern alternative:
+
+delegate_to: localhost
+
+
+Interview Gold:
+ local_action is similar to delegate_to: localhost, but delegate_to is preferred in modern playbooks.
+
+69. What is the difference between become, become_user, and become_method?
+
+become:
+ Enables privilege escalation.
+
+become: true
+
+
+become_user:
+ Defines which user to become.
+
+become_user: root
+
+
+become_method:
+ Defines escalation method.
+
+become_method: sudo
+
+
+Interview Gold:
+ become enables sudo, become_user defines target user, and become_method defines escalation method.
+
+70. What is tags in Ansible?
+
+Definition:
+ Tags are used to run specific parts of a playbook.
+
+Example:
+
+- name: Install nginx
+  yum:
+    name: nginx
+    state: present
+  tags:
+    - install
+
+
+Run only tagged tasks:
+
+ansible-playbook site.yml --tags install
+
+
+Skip tagged tasks:
+
+ansible-playbook site.yml --skip-tags install
+
+
+Interview Gold:
+ Tags help execute selected tasks without running the full playbook.
+
+71. What are pre_tasks and post_tasks?
+
+pre_tasks:
+ Tasks that run before roles/tasks.
+
+post_tasks:
+ Tasks that run after roles/tasks.
+
+Example:
+
+- hosts: web
+  pre_tasks:
+    - name: Stop traffic before deployment
+      debug:
+        msg: "Removing server from load balancer"
+
+  roles:
+    - webserver
+
+  post_tasks:
+    - name: Add traffic after deployment
+      debug:
+        msg: "Adding server back to load balancer"
+
+
+Interview Gold:
+ pre_tasks are used for preparation, and post_tasks are used for cleanup or validation.
+
+72. What is meta: flush_handlers?
+
+Definition:
+ meta: flush_handlers forces handlers to run immediately instead of waiting until the end of the play.
+
+Example:
+
+- name: Copy nginx config
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+  notify: restart nginx
+
+- name: Run handler immediately
+  meta: flush_handlers
+
+
+Use case:
+ Restart service before executing next dependent task.
+
+Interview Gold:
+ By default handlers run at the end, but meta: flush_handlers runs them immediately.
+
+73. What is any_errors_fatal?
+
+Definition:
+ If one host fails, the entire play stops for all hosts.
+
+Example:
+
+- hosts: web
+  any_errors_fatal: true
+  tasks:
+    - name: Critical validation
+      command: /opt/validate.sh
+
+
+Use case:
+
+production deployment
+database upgrade
+cluster-wide validation
+
+Interview Gold:
+ any_errors_fatal is used when failure on one host should stop execution everywhere.
+
+74. What is max_fail_percentage?
+
+Definition:
+ It stops play execution if failed hosts exceed a defined percentage.
+
+Example:
+
+- hosts: web
+  max_fail_percentage: 30
+
+
+Meaning:
+ If more than 30% of hosts fail, playbook stops.
+
+Use case:
+
+rolling deployments
+production clusters
+large server groups
+
+Interview Gold:
+ max_fail_percentage controls acceptable failure tolerance during multi-host execution.
+
+75. What is until, retries, and delay?
+
+Definition:
+ Used to retry a task until a condition becomes true.
+
+Example:
+
+- name: Wait for application to become healthy
+  uri:
+    url: http://localhost:8080/health
+    status_code: 200
+  register: health
+  until: health.status == 200
+  retries: 5
+  delay: 10
+
+
+Meaning:
+
+until → condition
+retries → number of attempts
+delay → wait between attempts
+
+Interview Gold:
+ until, retries, and delay are used for retry logic in automation.
+
+76. What is wait_for module?
+
+Definition:
+ wait_for waits for a condition before continuing.
+
+Example: wait for port
+
+- name: Wait for port 8080
+  wait_for:
+    port: 8080
+    host: "{{ inventory_hostname }}"
+    timeout: 60
+
+
+Example: wait for file
+
+- name: Wait for file
+  wait_for:
+    path: /tmp/app.ready
+    timeout: 120
+
+
+Interview Gold:
+ wait_for is used to wait for ports, files, services, or connection readiness.
+
+77. What is uri module in Ansible?
+
+Definition:
+ uri module is used to call HTTP/HTTPS APIs from Ansible.
+
+Example:
+
+- name: Check API health
+  uri:
+    url: http://localhost:8080/health
+    method: GET
+    status_code: 200
+  register: api_result
+
+
+Use case:
+
+health checks
+REST API calls
+deployment validation
+service registration
+
+Interview Gold:
+ uri module allows Ansible to interact with REST APIs.
+
+78. What is lineinfile module?
+
+Definition:
+ lineinfile ensures a specific line exists or is modified in a file.
+
+Example:
+
+- name: Disable root login
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PermitRootLogin'
+    line: 'PermitRootLogin no'
+
+
+Use case:
+
+small config changes
+updating single line
+enforcing file parameters
+
+Interview Gold:
+ lineinfile is used for managing single-line changes in configuration files.
+
+79. Difference between lineinfile, blockinfile, and replace?
+
+lineinfile:
+ Manage one line.
+
+blockinfile:
+ Manage a block of lines.
+
+replace:
+ Replace text using regex.
+
+Example blockinfile:
+
+- name: Add managed block
+  blockinfile:
+    path: /etc/app.conf
+    block: |
+      server=app01
+      port=8080
+
+
+Example replace:
+
+- name: Replace old port
+  replace:
+    path: /etc/app.conf
+    regexp: 'port=80'
+    replace: 'port=8080'
+
+
+Interview Gold:
+ Use lineinfile for one line, blockinfile for multiple managed lines, and replace for regex replacement.
+
+80. What is with_items and how is it different from loop?
+
+with_items:
+ Old style looping syntax.
+
+with_items:
+  - nginx
+  - git
+
+
+loop:
+ Modern and recommended syntax.
+
+loop:
+  - nginx
+  - git
+
+
+Key Difference:
+ loop is newer, cleaner, and preferred in modern Ansible playbooks.
+
+Interview Gold:
+ with_items is older syntax, while loop is the modern recommended approach.
+
+81. What is loop_control?
+
+Definition:
+ loop_control customizes loop behavior.
+
+Example:
+
+- name: Create users
+  user:
+    name: "{{ user_item }}"
+    state: present
+  loop:
+    - rizwan
+    - admin
+  loop_control:
+    loop_var: user_item
+
+
+Use case:
+
+rename default item
+avoid variable conflict
+improve readability
+
+Interview Gold:
+ loop_control gives better control over loop variable names and output.
+
+82. What is ansible_host, ansible_user, and ansible_port?
+
+Definition:
+ These are inventory connection variables.
+
+Example:
+
+[web]
+web01 ansible_host=10.1.1.10 ansible_user=ec2-user ansible_port=22
+
+
+Meaning:
+
+ansible_host → target IP/DNS
+ansible_user → SSH user
+ansible_port → SSH port
+
+Interview Gold:
+ These variables define how Ansible connects to managed nodes.
+
+83. What is ansible_connection?
+
+Definition:
+ ansible_connection defines the connection method used by Ansible.
+
+Examples:
+
+localhost ansible_connection=local
+
+server1 ansible_connection=ssh
+
+
+Common values:
+
+ssh
+local
+winrm
+docker
+
+Interview Gold:
+ ansible_connection controls whether Ansible connects using SSH, local execution, WinRM, or other methods.
+
+84. How does Ansible manage Windows servers?
+
+Definition:
+ Ansible manages Windows servers using WinRM instead of SSH.
+
+Inventory Example:
+
+[windows]
+win01 ansible_host=10.1.1.20
+
+[windows:vars]
+ansible_user=Administrator
+ansible_password=Password123
+ansible_connection=winrm
+ansible_winrm_transport=basic
+ansible_port=5986
+ansible_winrm_server_cert_validation=ignore
+
+
+Windows modules:
+
+win_ping
+win_service
+win_package
+win_copy
+win_file
+
+Command:
+
+ansible windows -m win_ping
+
+
+Interview Gold:
+ Linux uses SSH, while Windows uses WinRM for Ansible automation.
+
+85. What is ansible-doc command?
+
+Definition:
+ ansible-doc is used to view documentation of Ansible modules.
+
+Examples:
+
+ansible-doc yum
+
+ansible-doc ansible.builtin.copy
+
+
+List all modules:
+
+ansible-doc -l
+
+
+Interview Gold:
+ ansible-doc helps check module usage, options, and examples directly from CLI.
+
+86. What is the difference between state: present, absent, latest, and started?
+
+present:
+ Ensure resource/package exists.
+
+state: present
+
+
+absent:
+ Ensure resource/package is removed.
+
+state: absent
+
+
+latest:
+ Ensure package is installed with latest available version.
+
+state: latest
+
+
+started:
+ Ensure service is running.
+
+state: started
+
+
+Example:
+
+- name: Install nginx
+  yum:
+    name: nginx
+    state: present
+
+- name: Start nginx
+  service:
+    name: nginx
+    state: started
+
+
+Interview Gold:
+ state defines the desired condition of a package, service, file, user, or resource.
+
+87. What is state: restarted and state: reloaded?
+
+restarted:
+ Stops and starts the service.
+
+state: restarted
+
+
+reloaded:
+ Reloads service configuration without full restart, if supported.
+
+state: reloaded
+
+
+Example:
+
+- name: Reload nginx
+  service:
+    name: nginx
+    state: reloaded
+
+
+Key Difference:
+
+restarted → full restart
+reloaded → reload config only
+
+Interview Gold:
+ Use reloaded when you want to apply config without stopping the service completely.
+
+88. What is Ansible Tower / AWX?
+
+Definition:
+ AWX is the open-source upstream project of Ansible Automation Platform Controller.
+
+Used for:
+
+web UI for Ansible
+job scheduling
+RBAC
+credentials management
+inventory management
+workflow automation
+audit logs
+
+Interview Gold:
+ AWX/Tower provides a centralized UI, RBAC, scheduling, and enterprise automation management for Ansible.
+
+89. What are templates in Ansible roles?
+
+Definition:
+ Templates inside a role are Jinja2 files used to generate dynamic configuration files.
+
+Role structure:
+
+roles/
+  nginx/
+    templates/
+      nginx.conf.j2
+
+
+Task example:
+
+- name: Deploy nginx config
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+  notify: restart nginx
+
+
+Interview Gold:
+ Role templates allow reusable and dynamic configuration generation using variables.
+
+90. What is default filter in Jinja2?
+
+Definition:
+ default filter provides fallback value if variable is undefined.
+
+Example:
+
+msg: "App port is {{ app_port | default(8080) }}"
+
+
+Meaning:
+ If app_port is not defined, Ansible uses 8080.
+
+Use case:
+
+avoid undefined variable error
+provide fallback values
+make roles reusable
+
+Interview Gold:
+ default filter makes playbooks safer by handling missing variables gracefully.
+
+91. What is dict2items in Ansible?
+
+Definition:
+ dict2items converts dictionary data into a list for looping.
+
+Example Variable:
+
+users:
+  rizwan: admin
+  appuser: developer
+
+
+Loop Example:
+
+- name: Print users
+  debug:
+    msg: "User {{ item.key }} has role {{ item.value }}"
+  loop: "{{ users | dict2items }}"
+
+
+Interview Gold:
+ dict2items is used when you need to loop over dictionary key-value pairs.
+
+92. What is failed_when vs changed_when?
+
+failed_when:
+ Controls task failure condition.
+
+failed_when: result.rc not in [0, 3]
+
+
+changed_when:
+ Controls changed status.
+
+changed_when: false
+
+
+Key Difference:
+
+failed_when → controls failure
+changed_when → controls changed output
+
+Interview Gold:
+ failed_when controls whether a task fails, while changed_when controls whether a task reports change.
+
+93. How do you encrypt only a variable using Ansible Vault?
+
+Command:
+
+ansible-vault encrypt_string 'MySecretPassword' --name 'db_password'
+
+
+Output Example:
+
+db_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          encrypted_content_here
+
+
+Use in playbook:
+
+- debug:
+    msg: "Password is {{ db_password }}"
+
+
+Interview Gold:
+ encrypt_string is used to encrypt only sensitive variables instead of entire files.
+
+94. What is no_log: true in Ansible?
+
+Definition:
+ no_log: true hides sensitive task output from logs.
+
+Example:
+
+- name: Create database user
+  mysql_user:
+    name: appuser
+    password: "{{ db_password }}"
+    state: present
+  no_log: true
+
+
+Use case:
+
+passwords
+tokens
+secrets
+API keys
+
+Interview Gold:
+ no_log: true prevents sensitive data from appearing in console output or logs.
+
+95. How do you test connectivity to managed nodes?
+
+Using ping module:
+
+ansible all -i inventory.ini -m ping
+
+
+Expected output:
+
+"ping": "pong"
+
+
+For specific group:
+
+ansible web -i inventory.ini -m ping
+
+
+Interview Gold:
+ ansible -m ping validates SSH connectivity and Python availability on managed nodes.
+
+96. How do you run a playbook on a specific host?
+
+Using limit:
+
+ansible-playbook -i inventory.ini site.yml --limit web01
+
+
+Run on group:
+
+ansible-playbook -i inventory.ini site.yml --limit web
+
+
+Run on multiple hosts:
+
+ansible-playbook -i inventory.ini site.yml --limit "web01,web02"
+
+
+Interview Gold:
+ --limit restricts playbook execution to selected hosts or groups.
+
+97. What is the use of inventory_hostname?
+
+Definition:
+ inventory_hostname is a magic variable representing the host name as defined in inventory.
+
+Example:
+
+- debug:
+    msg: "Running on {{ inventory_hostname }}"
+
+
+Inventory:
+
+[web]
+app01 ansible_host=10.1.1.10
+
+
+Here:
+
+inventory_hostname = app01
+ansible_host = 10.1.1.10
+
+
+Interview Gold:
+ inventory_hostname is the logical name of the host in inventory, not always the actual hostname.
+
+98. What is groups magic variable?
+
+Definition:
+ groups contains all inventory groups and their hosts.
+
+Example:
+
+- debug:
+    msg: "{{ groups['web'] }}"
+
+
+Inventory:
+
+[web]
+web01
+web02
+
+
+Output:
+
+["web01", "web02"]
+
+
+Use case:
+
+loop through group hosts
+generate cluster config
+create load balancer backend list
+
+Interview Gold:
+ groups allows accessing hosts from any inventory group inside playbooks or templates.
+
+99. What is hostvars in Ansible?
+
+Definition:
+ hostvars is a magic variable used to access variables of other hosts.
+
+Example:
+
+- debug:
+    msg: "{{ hostvars['web01']['ansible_host'] }}"
+
+
+Use case:
+
+cluster configuration
+HAProxy backend config
+multi-node app config
+cross-host data access
+
+Interview Gold:
+ hostvars allows one host to access variables and facts of another host.
+
+100. What is the difference between inventory_hostname and ansible_hostname?
+
+inventory_hostname:
+ Name defined in inventory.
+
+app01 ansible_host=10.1.1.10
+
+
+ansible_hostname:
+ Actual system hostname collected from facts.
+
+{{ ansible_hostname }}
+
+
+Key Difference:
+
+inventory_hostname → inventory name
+ansible_hostname → real hostname from target server
+
+Interview Gold:
+ inventory_hostname comes from inventory, while ansible_hostname comes from gathered facts.
+
+101. What is strategy in Ansible?
+
+Definition:
+ strategy controls how Ansible executes tasks across hosts.
+
+Common strategies:
+
+strategy: linear
+
+strategy: free
+
+
+linear:
+ Default. All hosts complete one task before moving to next.
+
+free:
+ Hosts run independently without waiting for other hosts.
+
+Interview Gold:
+ strategy controls task execution behavior across multiple hosts.
+
+102. What is the difference between linear and free strategy?
+
+linear:
+
+default strategy
+all hosts execute task 1, then task 2
+controlled execution
+
+free:
+
+hosts do not wait for each other
+faster execution
+useful when hosts are independent
+
+Example:
+
+- hosts: all
+  strategy: free
+
+
+Interview Gold:
+ linear is synchronized execution, while free allows each host to run independently.
+
+103. How do you install packages based on OS family?
+
+Example:
+
+- name: Install Apache on RedHat
+  yum:
+    name: httpd
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Install Apache on Debian
+  apt:
+    name: apache2
+    state: present
+  when: ansible_os_family == "Debian"
+
+
+Better approach using variable:
+
+vars:
+  apache_package:
+    RedHat: httpd
+    Debian: apache2
+
+tasks:
+  - name: Install Apache
+    package:
+      name: "{{ apache_package[ansible_os_family] }}"
+      state: present
+
+
+Interview Gold:
+ Use facts like ansible_os_family with when condition to handle multi-OS automation.
+
+104. What is package module?
+
+Definition:
+ package is a generic package management module.
+
+Example:
+
+- name: Install package
+  package:
+    name: nginx
+    state: present
+
+
+Why use it?
+
+works across different OS families
+automatically uses backend package manager
+simpler than writing separate yum and apt tasks
+
+Interview Gold:
+ package is OS-independent and internally uses yum, dnf, apt, or other package managers.
+
+105. What is service module?
+
+Definition:
+ service module manages Linux services.
+
+Example:
+
+- name: Start and enable nginx
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+
+Common states:
+
+started
+stopped
+restarted
+reloaded
+
+Interview Gold:
+ service module is used to start, stop, restart, reload, and enable services.
+
+106. How do you create users using loop?
+
+Example:
+
+- name: Create multiple users
+  user:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - devuser
+    - appuser
+    - testuser
+
+
+With dictionary:
+
+- name: Create users with shell
+  user:
+    name: "{{ item.name }}"
+    shell: "{{ item.shell }}"
+    state: present
+  loop:
+    - { name: "devuser", shell: "/bin/bash" }
+    - { name: "appuser", shell: "/sbin/nologin" }
+
+
+Interview Gold:
+ Loops reduce duplicate tasks when performing the same action for multiple values.
+
+✅ Extra 30 Questions Summary
+
+You can revise these especially for interviews:
+
+57. ansible.cfg
+58. vars vs vars_files
+59. extra-vars
+60. set_fact
+61. debug module
+62. check mode
+63. diff mode
+64. forks
+65. serial vs forks
+66. run_once
+67. delegate_to with run_once
+68. local_action
+69. become options
+70. tags
+71. pre_tasks and post_tasks
+72. flush_handlers
+73. any_errors_fatal
+74. max_fail_percentage
+75. until/retries/delay
+76. wait_for
+77. uri module
+78. lineinfile
+79. lineinfile vs blockinfile vs replace
+80. with_items vs loop
+81. loop_control
+82. ansible_host/user/port
+83. ansible_connection
+84. Windows automation
+85. ansible-doc
+86. state values
+87. restarted vs reloaded
+88. AWX/Tower
+89. role templates
+90. default filter
+91. dict2items
+92. failed_when vs changed_when
+93. encrypt_string
+94. no_log
+95. connectivity test
+96. --limit
+97. inventory_hostname
+98. groups
+99. hostvars
+100. inventory_hostname vs ansible_hostname
+101. strategy
+102. linear vs free
+103. OS-based package install
+104. package module
+105. service module
+106. user creation loop
+
+
+Small note: I added 50 questions instead of only 30 because these are all high-value for Ansible interviews.
